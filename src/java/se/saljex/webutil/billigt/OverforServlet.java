@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.saljex.webutil.overforbilligt;
+package se.saljex.webutil.billigt;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -25,7 +25,7 @@ import se.saljex.sxlibrary.SxServerMainRemote;
  * @author ulf
  */
 @RunAs("admin")
-public class OverforBilligtServlet extends HttpServlet {
+public class OverforServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -57,7 +57,7 @@ public class OverforBilligtServlet extends HttpServlet {
             //https://billigtvvs.se/wp-content/uploads/wpallexport/exports/0668442170e378ee2285ccfc14a67a39/current-Ordrar-Export-2017-June-15-0922-4.xml
             if ("import".equals(ac)) {
                 try {
-                    ArrayList<OrderImport> orderList = XMLParser.parseXMLFromURL(url);
+                    ArrayList<OrderImport> orderList = OverforXMLParser.parseXMLFromURL(url);
 
                     List<Integer> ol = sxServerMainBean.importOrder("00", orderList);
                     out.print("<b>Importen klar.</b> Totalt " + ol.size() + " ordrar importerade.</br>");

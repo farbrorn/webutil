@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.saljex.webutil.overforbilligt;
+package se.saljex.webutil.billigt;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -27,7 +27,7 @@ import se.saljex.sxlibrary.OrderImport;
  *
  * @author ulf
  */
-public class XMLParser {
+public class OverforXMLParser {
 
     public static String getValue(Element element, String name ) {
         try {
@@ -36,7 +36,7 @@ public class XMLParser {
     }
     
     public static ArrayList<OrderImport> parseXMLFromURL(String urlString) throws MalformedURLException, IOException, SAXException, ParserConfigurationException {
-            XMLParser.litaPaAllaSSLCertifikat();
+            OverforXMLParser.litaPaAllaSSLCertifikat();
             URL url = new URL(urlString);
             
             ArrayList<OrderImport> orderList = new ArrayList<>();
@@ -57,8 +57,9 @@ public class XMLParser {
                 order.setLevAdr1((getValue(eElement, "ShippingCompany") + " " + getValue(eElement, "ShippingFirstName") + " " + getValue(eElement, "ShippingLastName")).trim());
                 order.setLevAdr2(getValue(eElement, "ShippingAddress1"));
                 order.setLevAdr3(getValue(eElement, "ShippingPostcode") + " " + getValue(eElement, "ShippingCity"));
-                order.setLagernr(Overfor.getLagernr());
-                order.setKundnr(Overfor.getKundnr());
+                order.setMarke(getValue(eElement, "OrderID") + " " + order.getLevAdr1());
+                order.setLagernr(BilligtData.getLagernr());
+                order.setKundnr(BilligtData.getKundnr());
 
                 String t;
                 t = getValue(eElement, "CustomerAccountEmailAddress");

@@ -2,11 +2,27 @@
 <web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
     <servlet>
         <servlet-name>OverforBilligt</servlet-name>
-        <servlet-class>se.saljex.webutil.overforbilligt.OverforBilligtServlet</servlet-class>
+        <servlet-class>se.saljex.webutil.billigt.OverforServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Artikelbevakning</servlet-name>
+        <servlet-class>se.saljex.webutil.billigt.ArtikelbevakningServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>Utleveranser</servlet-name>
+        <servlet-class>se.saljex.webutil.billigt.Utleveranser</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>OverforBilligt</servlet-name>
-        <url-pattern>/overforbilligt</url-pattern>
+        <url-pattern>/billigt/overfor</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Artikelbevakning</servlet-name>
+        <url-pattern>/billigt/artikelbevakning</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Utleveranser</servlet-name>
+        <url-pattern>/billigt/utleveranser</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
