@@ -42,7 +42,12 @@ public class ArtikelbevakningServlet extends HttpServlet {
         try (PrintWriter out = response.getWriter()) {
                 
             if (xml) {
-                out.println("<xml>");
+                out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+                out.println("<?xml-stylesheet type=\"text/xml\" href=\"artikelbevakning.xsl\"?>");
+                //out.println("<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>");
+                //out.println("<!DOCTYPE data [ <!ATTLIST xsl:stylesheet  id    ID  #REQUIRED> ]>");
+                out.println("<data>");
+                //request.getRequestDispatcher("/WEB-INF/se.saljex.webutil.overfor/artikelbevakning.xsl").include(request, response);
             } else {
                 out.println("<!DOCTYPE html>");
                 out.println("<html>");
@@ -90,7 +95,7 @@ public class ArtikelbevakningServlet extends HttpServlet {
                 if (!xml) out.print("</table>");
             } catch(SQLException e) { out.print("SQL-Fel " + e.getMessage()); }
             if (!xml) out.print("</body></html>");
-            else out.print("</xml>");
+            else out.print("</data>");
         } 
     }
 
