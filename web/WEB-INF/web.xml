@@ -16,6 +16,10 @@
         <servlet-name>OverforOrder</servlet-name>
         <servlet-class>se.saljex.webutil.sxas.OverforOrderServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>SkapaTemporarArtikelServlet</servlet-name>
+        <servlet-class>se.saljex.webutil.sxas.SkapaTemporarArtikelServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>OverforBilligt</servlet-name>
         <url-pattern>/billigt/overfor</url-pattern>
@@ -31,6 +35,10 @@
     <servlet-mapping>
         <servlet-name>OverforOrder</servlet-name>
         <url-pattern>/saljexas/OverforOrder</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SkapaTemporarArtikelServlet</servlet-name>
+        <url-pattern>/saljexas/SkapaTemporarArtikel</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

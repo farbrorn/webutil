@@ -11,12 +11,18 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
+import se.saljex.loginservice.LoginServiceBeanRemote;
+import se.saljex.loginservice.LoginServiceConstants;
+import se.saljex.loginservice.Util;
 
 /**
  *
@@ -29,6 +35,8 @@ public class ManiFilter extends se.saljex.loginservice.LoginServiceFilter {
 	private DataSource sxadm;
 	@Resource(mappedName = "sxsuperuser")
 	private DataSource sxsuperuser;
+        @EJB
+        private LoginServiceBeanRemote loginServiceBeanRemote;
     
     public ManiFilter() {
         super();
@@ -44,8 +52,8 @@ public class ManiFilter extends se.saljex.loginservice.LoginServiceFilter {
 			con = sxadm.getConnection();
 			request.setAttribute("sxconnection", con); 
 			con2 = sxsuperuser.getConnection();
-			request.setAttribute("sxsuperuserconnection", con2);
-			super.doFilter(request,response,chain);
+			request.setAttribute("sxsuperuserconnection", con2);                       
+ 			super.doFilter(request,response,chain);
 		} catch (SQLException e) {
 			Logger.getLogger("sx-logger").severe("SQL-Fel:" + e.getMessage()); e.printStackTrace();
 		} finally { try {con.close(); con2.close();} catch (Exception eee) {}}		
