@@ -12,6 +12,10 @@
         <servlet-name>Utleveranser</servlet-name>
         <servlet-class>se.saljex.webutil.billigt.Utleveranser</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>OverforOrder</servlet-name>
+        <servlet-class>se.saljex.webutil.sxas.OverforOrderServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>OverforBilligt</servlet-name>
         <url-pattern>/billigt/overfor</url-pattern>
@@ -23,6 +27,10 @@
     <servlet-mapping>
         <servlet-name>Utleveranser</servlet-name>
         <url-pattern>/billigt/utleveranser</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OverforOrder</servlet-name>
+        <url-pattern>/saljexas/OverforOrder</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
