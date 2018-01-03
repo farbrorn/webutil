@@ -95,7 +95,6 @@ public class OverforOrderServlet extends HttpServlet {
                                 isErrorOnOrder = true;                                
                             }
                         }
-                        orderraderStatement.close();
                         if (isErrorOnOrder) overforError = true;
                         if (isOnOrdernr && !isErrorOnOrder) {
                             sb.append("Ordernr " + o + " - ok<br>");

@@ -146,6 +146,13 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
                     ps.setString(2, anvandare);
                     if (ps.executeUpdate()<1) throw new SQLException("Kunde inte skapa artikelhändelse.");
 
+                    ps = con.prepareStatement("insert into sxfakt.nettopri (lista, artnr, pris, datum) values ((select nettolst from sxfakt.kund where nummer=?) , ?, round(?::numeric,2), current_date)");
+                    ps.setQueryTimeout(60);
+                    ps.setString(1, SxasData.getKundnr());
+                    ps.setString(2, tArtnr);
+                    ps.setDouble(3, inprisAB/0.95);
+                    if (ps.executeUpdate()<1) throw new SQLException("Kunde inte spara i nettoprislistan.");
+                    
                     con.commit();
                     con.setAutoCommit(true);
                     sb.append("Artikel " + tArtnr + " " + namn + " är skapad OK!<br>");
