@@ -66,7 +66,7 @@ public class OverforOrderServlet extends HttpServlet {
 //                    System.out.print("Isol: " + con.getTransactionIsolation()); 
                     Statement statement = con.createStatement();
                     statement.setQueryTimeout(60);
-                    statement.executeUpdate("create temporary table orderrader (artnr varchar, lev real) on commit drop");
+                    statement.executeUpdate("create temporary table orderrader (artnr varchar, lev real, pos serial) on commit drop");
                     PreparedStatement orderraderStatement = con.prepareStatement("insert into orderrader (artnr, lev) values (?,?)");
                     orderraderStatement.setQueryTimeout(60);
                     PreparedStatement ps = con.prepareStatement("select o1.ordernr, o1.namn as kundnamn, o2.artnr, o2.namn as artnamn, o2.lev, o2.netto, o2.enh, a.nummer as a_nummer  from sxasfakt.order1 o1 join sxasfakt.order2 o2 on o1.ordernr=o2.ordernr left outer join sxfakt.artikel a on a.nummer=o2.artnr where o2.artnr is not null and o2.artnr <> '' and o2.lev<>0 and status='Samfak' and o1.ordernr=?");
@@ -112,7 +112,7 @@ public class OverforOrderServlet extends HttpServlet {
                             offertnr = rs.getInt(1);
                             if (offertnr==null) throw new SQLException("null-värde för offertnummer från sxfakt.fakttdat");
                             if (statement.executeUpdate("update sxfakt.faktdat set offertnr = offertnr+1")<1) throw new SQLException("Kan inte uppdatera sxfakt.faktdat");
-                            statement.executeUpdate("create temporary sequence pos;");
+//                           statement.executeUpdate("create temporary sequence pos;");
                             
                             ps = con.prepareStatement("create temporary table kon on commit drop as select ?::varchar as kundnr, ? as offertnr;");
                             ps.setString(1, SxasData.getKundnr());
@@ -126,11 +126,12 @@ public class OverforOrderServlet extends HttpServlet {
                             ) <1) throw new SQLException("Kan inte skapa sxfakt.offert1 (offertnr " + offertnr + ")");
                             if (statement.executeUpdate(
                                     "insert into sxfakt.offert2 (offertnr, pos, prisnr, artnr, namn, levnr, best, rab, lev, text, pris, summa, konto, netto, enh) " +
-                                    " select kon.offertnr, (select nextval('pos')), 1, v.artnr, v.artnamn, v.lev, orad.lev, 0, orad.lev, '', " +
+//                                    " select kon.offertnr, (select nextval('pos')), 1, v.artnr, v.artnamn, v.lev, orad.lev, 0, orad.lev, '', " +
 //                                    " select kon.offertnr, (select count(*)+1 from sxfakt.offert2 where offertnr=kon.offertnr), 1, v.artnr, v.artnamn, v.lev, orad.lev, 0, orad.lev, '', " +
+                                    " select kon.offertnr, orad.pos, 1, v.artnr, v.artnamn, v.lev, orad.lev, 0, orad.lev, '', " +
                                     " round(least(utpris, case when rabkod='NTO' then utpris else utpris*(1-greatest(basrab, gruppbasrab, undergrupprab)/100) end, case when nettopris=0 then utpris else nettopris end )::numeric,2), " +
                                     " 0,'' , round((v.inpris*(1-v.rab/100)*(1+v.inp_fraktproc/100)+v.inp_frakt+v.inp_miljo)::numeric,2), v.enhet " +
-                                    " from (select artnr, sum(lev) as lev from orderrader group by artnr order by artnr) orad "
+                                    " from (select artnr, sum(lev) as lev, min(pos) as pos from orderrader group by artnr order by artnr) orad "
                                     + " join kon on 1=1 "
                                     + "left outer join sxfakt.vartkundorder v on orad.artnr=v.artnr and lagernr=0 and kon.kundnr=v.kundnr " +
                                     " ;"
