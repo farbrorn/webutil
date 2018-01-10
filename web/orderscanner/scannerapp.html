@@ -1,0 +1,729 @@
+<html>
+    <head>
+        <title>Scannertest</title>
+        <meta charset="UTF-8">
+    <script>
+    var basURL="/webutil/orderscanner";
+    var db;
+    initDatabase(true);
+    function initDatabase(lasInArtiklar) {
+        var request = window.indexedDB.open("scanner", 1);
+        request.onerror = function(event) {
+            alert("Fel vid öppna databas." + event.target.errorCode);
+        };
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            redrawOrderLista();
+            redrawKundlista();
+        };
+        request.onupgradeneeded = function(event) { 
+            var db = event.target.result;
+            if (!db.objectStoreNames.contains('orderlista')) {
+              var oStore = db.createObjectStore('orderlista',{keyPath: 'pos', autoIncrement: true});
+            }
+            if (!db.objectStoreNames.contains('artikel')) {
+              var oStore = db.createObjectStore('artikel',{keyPath: 'artnr'});
+                if (lasInArtiklar==true) loadArtiklar();
+            }
+            if (!db.objectStoreNames.contains('kund')) {
+              var oStore = db.createObjectStore('kund',{keyPath: 'kundnr'});
+            }
+        };
+    }    
+    
+    
+ 
+    function addOrderRad(artnr, namn, antal, enhet) {        
+        var transaction = db.transaction(["orderlista"], "readwrite");    
+        transaction.oncomplete = function(event) {
+            console.log("Sparad ok");
+            redrawOrderLista();
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när data skulle sparas." + event.toString() +  event.target.errorCode);
+        };    
+
+        var objectStore = transaction.objectStore("orderlista");
+                var r = {
+                artnr: artnr,
+                namn: namn,
+                antal: antal,
+                enhet: enhet
+            };
+        var request = objectStore.add(r);
+        request.onsuccess = function(event) {
+          transaction.complete;  
+        };
+
+        
+        
+    }
+ 
+    function redrawOrderLista() { 
+        var transaction = db.transaction(["orderlista"]);    
+        transaction.oncomplete = function(event) {
+            console.log("ORderlistan läst");
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när orderlista skulle läsas." + event.target.errorCode);
+        };    
+
+        var objectStore = transaction.objectStore("orderlista");
+        var raderAll = objectStore.getAll();
+        raderAll.onsuccess = function() {
+            var rader = raderAll.result;
+            var arrayLength = rader.length;
+            var table = document.getElementById("artiklar-table");
+            table.innerHTML="";
+            for (var i = 0; i < arrayLength; i++) {
+                
+                var row = table.insertRow(0);
+                row.insertCell(0).innerHTML = rader[i].artnr;
+                row.insertCell(1).innerHTML = rader[i].namn;
+                row.insertCell(2).innerHTML = rader[i].antal + " " + rader[i].enhet;
+                row.insertCell(3).innerHTML = '<button onclick="andraAntal(' + rader[i].pos + ')" >Ändra</button>';
+                row.insertCell(4).innerHTML = '<button onclick="taBortOrderrad(' + rader[i].pos + ')" >Ta bort</button>';
+                
+               //addRow(rader[i].artnr, rader[i].antal); 
+            }
+        };
+
+    }
+    
+    function taBortOrderrad(pos) {
+        if (pos) {
+            var transaction = db.transaction(["orderlista"],"readwrite");    
+            transaction.oncomplete = function(event) {
+                console.log("Rad borttagen");
+            }; 
+            transaction.onerror = function(event) {
+              alert("Fel när orderrad skulle tas bort" + event.target.errorCode);
+            };    
+            var objectStore = transaction.objectStore("orderlista");
+            var request = objectStore.delete(pos);
+            request.onsuccess = function(event) {
+                redrawOrderLista();
+                transaction.complete;
+            };
+        }
+        
+    }
+    function clearOrderLista() {
+        if (document.getElementById('meny_rensa_check').checked) {
+            doClearOrderLista();
+            document.getElementById('meny_rensa_check').checked=false;
+        } else {
+            alert("Du måste kryssa i rutan för utföra åtgärden.");
+        }
+    }    
+    
+    function doClearOrderLista() {
+        var transaction = db.transaction(["orderlista"], "readwrite");    
+        transaction.oncomplete = function(event) {
+            console.log("ORderlistan tömmd");
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när orderlista skulle tömmas" + event.target.errorCode);
+        };    
+        var objectStore = transaction.objectStore("orderlista");
+        var request = objectStore.clear();
+        request.onsuccess = function(event) {
+            transaction.complete;  
+            redrawOrderLista();
+        };
+    }
+    
+ 
+
+    function clearArtikelTabell() {
+        var transaction = db.transaction(["artikel"], "readwrite");    
+        transaction.oncomplete = function(event) {
+            console.log("Artikellistan tömmd");
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när artikellista skulle tömmas" + event.target.errorCode);
+        };    
+        var objectStore = transaction.objectStore("artikel");
+        var request = objectStore.clear();
+        request.onsuccess = function(event) {
+            transaction.complete;  
+        };
+    }
+    
+
+
+    function loadArtiklar() {
+        var req = new XMLHttpRequest();
+        req.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+               var str = req.responseText;
+                var al = JSON.parse(str);
+                if (al) {
+                    var transaction = db.transaction(["artikel"], "readwrite");    
+                    transaction.oncomplete = function(event) {
+                        console.log("Artikeltabell Sparad ok");
+                    }; 
+                    transaction.onerror = function(event) {
+                      alert("Fel när data skulle sparas i artikeltabell." + event.toString() +  event.target.errorCode);
+                    };    
+                    var objectStore = transaction.objectStore("artikel");
+                    var request = objectStore.clear();
+                    request.onsuccess = function (event) {
+                        var isError=false;
+                        al.forEach(function(a) {
+                           var reqArt = objectStore.add(a);
+                            reqArt.onerror = function () {isError=true;};
+                        });
+                        if (!isError) transaction.complete; else transaction.abort;
+                    };
+                }
+            }
+        };
+        req.open("GET", basURL+"/getArtikelLista");
+        req.send();
+        
+
+    }
+
+
+
+
+
+    function inputAntalKey(s) {
+        document.getElementById("i_antal").value += s; 
+        
+    }
+    function inputAntalSet(s) {
+        document.getElementById("i_antal").value = s; 
+    }
+    function inputAntalClear() {
+        document.getElementById("i_antal").value = ''; 
+    }
+    
+    function addRowAndClear() {
+        getArtikel();
+        addOrderRad(document.getElementById("i_artnr").value, currentArtikel.namn, document.getElementById("i_antal").value, currentArtikel.enhet);
+        document.getElementById("i_artnr").value = "";
+        inputAntalClear();
+        clear_artikel();
+        document.getElementById("i_artnr").focus();
+    }
+
+    function log(s) {
+                document.getElementById("debug").innerHTML += s;
+
+    }
+//    function addRow(artnr, antal) {
+//       artnr = document.getElementById("i_artnr").value;
+ //       antal = document.getElementById("i_antal").value;
+//        var table = document.getElementById("artiklar-table");
+//        var row = table.insertRow(0);
+//        row.insertCell(0).innerHTML = artnr;
+//        row.insertCell(1).innerHTML = antal;
+        
+//        addOrderRad(artnr, antal);
+//    }
+    
+    function artnrKeyUp(event) {
+        if (currentArtikel && document.getElementById("a_artnr").value!=currentArtikel.artnr) {
+            clear_artikel();
+        }
+        if (event.keyCode==13) {
+            getArtikel();
+        }
+    }
+
+    function artnrFocusOut() {
+        getArtikel(); 
+    }
+
+    var currentArtikel;
+    function getArtikel() {
+        var artnr = document.getElementById("i_artnr").value;
+        
+        if (artnr) {
+            if (artnr.charAt(0)=="*") artnr=artnr.slice(1,artnr.length-1);
+            if(artnr.charAt( artnr.length-1 ) == "*") artnr=artnr.slice(0,-1);
+            document.getElementById("i_artnr").value = artnr;
+
+            var transaction = db.transaction(["artikel"]);    
+            transaction.oncomplete = function(event) {
+                console.log("Artikel hämtad");
+            }; 
+            transaction.onerror = function(event) {
+              alert("Fel när artikellista skulle hämtas" + event.target.errorCode);
+            };    
+            var objectStore = transaction.objectStore("artikel");
+            var request = objectStore.get(artnr);
+            request.onsuccess = function(event) {
+                currentArtikel = request.result;
+                transaction.complete;  
+                if (currentArtikel) {
+                    var minsaljpack=currentArtikel.minsaljpack;
+                    var forpack=currentArtikel.forpack;
+                    if (!minsaljpack || minsaljpack==0) minsaljpack=1;
+                    if (!forpack || forpack==0) forpack=1;
+
+                    document.getElementById("a_artnr").innerHTML=currentArtikel.artnr;
+                    document.getElementById("a_namn").innerHTML=currentArtikel.namn;
+                    document.getElementById("a_enhet").innerHTML=currentArtikel.enhet;
+                    document.getElementById("a_forpack").innerHTML=forpack;
+                    document.getElementById("a_minsaljpack").innerHTML="1 frp = " + minsaljpack;
+
+                    document.getElementById("b_antal1").innerHTML=minsaljpack + " " + currentArtikel.enhet;
+                    document.getElementById("b_antal1").setAttribute("value", minsaljpack);
+                    document.getElementById("b_antal2").innerHTML=forpack + " " + currentArtikel.enhet;
+                    document.getElementById("b_antal2").setAttribute("value", forpack);
+                    document.getElementById("b_antal3").innerHTML=forpack*2 + " " + currentArtikel.enhet;
+                    document.getElementById("b_antal3").setAttribute("value", forpack*2);
+                } else {
+                    clear_artikel();
+                }
+            };
+        }
+
+    }
+
+    
+    function clear_artikel() {
+                    document.getElementById("a_artnr").innerHTML="";
+                    document.getElementById("a_namn").innerHTML="";
+                    document.getElementById("a_enhet").innerHTML="";
+                    document.getElementById("a_forpack").innerHTML="";
+                    document.getElementById("a_minsaljpack").innerHTML="";
+                    
+                    document.getElementById("b_antal1").innerHTML="1 st" ;
+                    document.getElementById("b_antal1").setAttribute("value", 1);
+                    document.getElementById("b_antal2").innerHTML="10 st";
+                    document.getElementById("b_antal2").setAttribute("value", 10);
+                    document.getElementById("b_antal3").innerHTML="20 st";
+                    document.getElementById("b_antal3").setAttribute("value", 20);
+    }
+    function displayDiv(id) {
+
+        var d = document.getElementById(id);
+        if (d) {
+            document.getElementById("scan").style.display="none";
+            document.getElementById("meny").style.display="none";
+            document.getElementById("andra").style.display="none";
+            document.getElementById("kund").style.display="none";
+            document.getElementById("skicka").style.display="none";
+            document.getElementById("skicka_svar").innerHTML="";
+            d.style.display="block";
+        }
+    }
+    function tomDatabas() {
+        if (document.getElementById('meny_tom_check').checked) {
+            doTomDatabas();
+            document.getElementById('meny_tom_check').checked=false;
+        } else {
+            alert("Du måste kryssa i rutan för utföra åtgärden.");
+        }
+    }    
+    
+    function doTomDatabas() {
+          console.log("start deleting database....");
+          db.close();
+        var DBDeleteRequest = window.indexedDB.deleteDatabase("scanner");
+
+        DBDeleteRequest.onerror = function(event) {
+          console.log("Error deleting database.");
+        };
+
+        DBDeleteRequest.onsuccess = function(event) {
+          console.log("Database deleted successfully");
+
+          console.log(event.result); // should be undefined
+          initDatabase(false);
+        };        
+
+/*        
+        var transaction = db.transaction(["orderlista","artikel"], "readwrite");    
+        transaction.oncomplete = function(event) {
+            console.log("ORderlistan tömmd");
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när orderlista skulle tömmas" + event.target.errorCode);
+        };    
+        var objectStore = transaction.objectStore("orderlista");
+        var request = objectStore.clear();
+        request.onsuccess = function(event) {
+            var objectStore2 = transaction.objectStore("artikel");
+            var request2 = objectStore2.clear();
+            request2.onsuccess = function(event) {
+                transaction.complete;  
+            };
+            redrawOrderLista();
+        };
+*/
+    }
+    
+    function doAndraAntal() {
+        console.log("Andra antal " );
+        var transaction = db.transaction(["orderlista"],"readwrite");    
+        transaction.oncomplete = function(event) {
+            console.log("Rad ändrad");
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när orderrad skulle tas bort" + event.target.errorCode);
+        };    
+        var objectStore = transaction.objectStore("orderlista");
+            console.log("k " + document.getElementById("andra_pos").value);
+        var request = objectStore.get(Number(document.getElementById("andra_pos").value));
+        request.onsuccess = function(event) {
+            var r = request.result;
+            if (r) {
+                r.antal = document.getElementById("andra_antal").value;
+                var request2 = objectStore.put(r);
+                request2.onsuccess = function(event) {
+                    redrawOrderLista();
+                    transaction.complete;
+                };
+            }
+        };
+    }
+    
+
+    function andraAntal(pos) {
+        var transaction = db.transaction(["orderlista"]);    
+        transaction.oncomplete = function(event) {
+            console.log("Sparad ok");
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när data skulle ändras." + event.toString() +  event.target.errorCode);
+        };    
+        var objectStore = transaction.objectStore("orderlista");
+        var request = objectStore.get(pos);
+        request.onsuccess = function() {
+            var r = request.result;
+            if (r) {
+                document.getElementById("andra_pos").value = r.pos;
+                document.getElementById("andra_antal").value = r.antal;
+                document.getElementById("andra_artnr").innerHTML = r.artnr;
+                document.getElementById("andra_namn").innerHTML = r.namn;
+                document.getElementById("andra_enhet").innerHTML = r.enhet;
+                document.getElementById('meny_tom_check').checked=false;
+                document.getElementById('meny_rensa_check').checked=false;
+                displayDiv("andra");
+            }
+        };
+    }
+    
+    function skickaOrder() {
+        document.getElementById("skicka_svar").innerHTML="Bearbetar begäran. Vänligen invänta bekräftelse att ordern är mottagen.";
+        var transaction = db.transaction(["orderlista"]);    
+        transaction.oncomplete = function(event) {
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när orderlista skulle läsas." + event.target.errorCode);
+        };    
+
+        var objectStore = transaction.objectStore("orderlista");
+        var raderAll = objectStore.getAll();
+        raderAll.onsuccess = function() {
+            var rader = raderAll.result;
+            var arrayLength = rader.length;
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                   var str = req.responseText;
+                   document.getElementById("skicka_svar").innerHTML=str;
+                }
+                if (this.readyState == 4 && this.status != 200) {
+                   document.getElementById("skicka_svar").innerHTML="<b>Fel när förfrågan behandlades. (" + this.status + "). Ordern är inte sparad. Prova igen.</b>";
+                }
+                
+            };
+            req.open("POST", basURL+"/sendOrder");
+            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            var kundnr=document.getElementById('skicka_kundnr').value;
+            req.send("order=" + JSON.stringify(rader) + "&marke=" + encodeURIComponent(document.getElementById('skicka_marke').value) + "&kundnr=" + encodeURIComponent(kundnr));
+        };
+        
+    }
+    
+    function sparaKund() {
+        var kundnr = document.getElementById("kund_kundnr").value;
+        var namn = document.getElementById("kund_namn").value;
+        if (!kundnr || !namn || kundnr.length < 1 || namn.length < 1) {
+            alert("Falaktiga uppgifter i kundnummer eller naamn.");
+        } else {
+            var transaction = db.transaction(["kund"], "readwrite");    
+            transaction.oncomplete = function(event) {
+                console.log("Sparad ok");
+                redrawKundlista();
+            }; 
+            transaction.onerror = function(event) {
+              alert("Fel när data skulle sparas." + event.toString() +  event.target.errorCode);
+            };    
+
+            var objectStore = transaction.objectStore("kund");
+                    var r = {
+                    kundnr: kundnr,
+                    namn: namn
+                };
+            var request = objectStore.add(r);
+            request.onsuccess = function(event) {
+              transaction.complete;  
+            };
+            
+        }
+    }
+    
+    function redrawKundlista() {
+        var transaction = db.transaction(["kund"]);    
+        transaction.oncomplete = function(event) {
+        }; 
+        transaction.onerror = function(event) {
+          alert("Fel när orderlista skulle läsas." + event.target.errorCode);
+        };    
+
+        var objectStore = transaction.objectStore("kund");
+        var raderAll = objectStore.getAll();
+        raderAll.onsuccess = function() {
+            var rader = raderAll.result;
+            var arrayLength = rader.length;
+            var table = document.getElementById("kunder-table");
+            table.innerHTML="";
+            for (var i = 0; i < arrayLength; i++) {
+                var row = table.insertRow(0);
+                row.insertCell(0).innerHTML = rader[i].kundnr;
+                row.insertCell(1).innerHTML = rader[i].namn;
+                row.insertCell(2).innerHTML = '<button onclick="taBortKund(\'' + rader[i].kundnr + '\')" >Ta bort</button>';
+                row.insertCell(3).innerHTML = '<button onclick="setKund(\'' + rader[i].kundnr + '\', \'' + rader[i].namn + '\' )" >Välj</button>';
+            }
+        };
+    }
+    
+    function taBortKund(kundnr) {
+        if (kundnr) {
+            var transaction = db.transaction(["kund"],"readwrite");    
+            transaction.oncomplete = function(event) {
+            }; 
+            transaction.onerror = function(event) {
+              alert("Fel när kund skulle tas bort" + event.target.errorCode);
+            };    
+            var objectStore = transaction.objectStore("kund");
+            var request = objectStore.delete(kundnr);
+            request.onsuccess = function(event) {
+                redrawKundlista();
+                transaction.complete;
+            };
+        }
+    }
+    
+    function setKund(kundnr, namn) {
+        document.getElementById("skicka_kundnr").value = kundnr;
+        document.getElementById("skicka_namn").value = namn;        
+        document.getElementById("kund_kundnr").value = kundnr;
+        document.getElementById("kund_namn").value = namn;        
+    }
+    
+    
+    
+    </script>
+        
+    <style>
+        .numtable {
+            width: 100%;
+            max-width: 300px;
+        }
+        .numtable td {
+        }
+        .numtable button {
+            width: 100%;
+            height: 100%;
+            min-height: 60px;
+        }
+       
+        .antalbtn {
+            background-color: khaki;
+            font-weight: bold;
+        }
+        .okButton {
+            font-weight: bold;
+            background-color: greenyellow;
+        }
+        #input-div {
+            margin-bottom: 8px;
+        }
+        #input-div input {
+            font-size: 24px;
+        }
+        #i_artnr {
+            width: 6em;
+        }
+        #i_antal {
+            width: 4em;
+        }
+        #header {
+            margin-bottom: 12px;
+            background-color: lightblue;
+            padding: 4px;
+        }
+        #header button {
+            height: 30px;
+            margin-right: 12px;
+            
+        }
+        #meny button {
+            height: 30px;
+            margin-right: 12px;
+        }
+
+        #artiklar {
+            margin-top: 12px;
+        }
+        #artiklar-table {
+            font-size: 20px;
+        }
+        #artiklar-table td {
+            padding: 4px 10px 4px 2px;
+        }
+        #andra div {
+            margin-bottom: 12px;
+        }
+        #andra button {
+            height: 60px;
+            width: 120px;
+            margin-right: 12px;
+        }
+        #andra input {
+            font-size: 24px;
+        }
+        #andra_antal {
+            width: 4em;
+        }
+        #skicka input {
+            font-size: 24px;
+        }
+        #skicka button {
+            height: 30px;
+            width: 120px;
+            margin-right: 12px;
+        }
+        #kund button {
+            height: 30px;
+            width: 120px;
+            margin-right: 12px;
+        }
+        
+       
+    </style>
+    </head>
+         
+    <body>
+        <div id="scan">
+            <div id="header">
+                <button onclick="displayDiv('meny')">Meny</button>
+                <button onclick="displayDiv('skicka')">Skicka Order</button>
+            </div>
+            <div id="input-div">
+                Artikel: <input id="i_artnr" onfocusout="artnrFocusOut()" onkeyup="artnrKeyUp(event)" >
+                Antal: <input id="i_antal">
+            </div>
+            <div style="min-height: 1em">
+                <span style="display: none" id="a_artnr"></span><span id="a_namn"></span> <span id="a_minsaljpack"></span> <span id="a_enhet"></span><span style="display: none" id="a_forpack"></span>
+            </div>
+            <div id="log"></div>
+            <div>
+                <table class="numtable">
+                    <tr>
+                        <td><button id="b_antal1" class="antalbtn" value="10" onclick="inputAntalSet(document.getElementById('b_antal1').getAttribute('value'));addRowAndClear();">10 st</button></td>
+                        <td><button id="b_antal2" class="antalbtn" value="10" onclick="inputAntalSet(document.getElementById('b_antal2').getAttribute('value'));addRowAndClear();">10 st</button></td>
+                        <td><button id="b_antal3" class="antalbtn" value="10" onclick="inputAntalSet(document.getElementById('b_antal3').getAttribute('value'));addRowAndClear();">10 st</button></td>
+                    </tr>
+                    <tr><td><button onclick="inputAntalKey('7')">7</button></td><td><button onclick="inputAntalKey('8')">8</button></td><td><button onclick="inputAntalKey('9')">9</button></td></tr>
+                    <tr><td><button onclick="inputAntalKey('4')">4</button></td><td><button onclick="inputAntalKey('5')">5</button></td><td><button onclick="inputAntalKey('6')">6</button></td></tr>
+                    <tr><td><button onclick="inputAntalKey('1')">1</button></td><td><button onclick="inputAntalKey('2')">2</button></td><td><button onclick="inputAntalKey('3')">3</button></td></tr>
+                    <tr><td><button onclick="inputAntalKey('0')">0</button></td><td><button onclick="inputAntalClear()">Del</button></td><td></td></tr>
+                    <tr><td colspan="3"><button id="okButton" class="okButton" onclick="addRowAndClear()">OK</button></td></tr>
+                </table>
+            </div>
+            <div id="artiklar">
+                <div><b>Artiklar</b></div>
+                <table id="artiklar-table">
+                </table>
+            </div>
+        </div>
+
+
+        <div style="display:none" id="meny">
+            <div style="margin-bottom: 12px;">
+                <button onclick="displayDiv('scan')">Tillbaka</button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <button onclick="skickaOrder()">Skicka order till server</button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <button onclick="loadArtiklar()">Läs in artikelregistret</button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <button onclick="displayDiv('kund')">Kunder</button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <p><button onclick="clearOrderLista()">Töm aktuell order</button> Markera för att godkänna <input type="checkbox" id="meny_rensa_check"></p>
+                <p><button onclick="tomDatabas();">Töm hela databasen inkl. artiklar</button> Markera för att godkänna <input type="checkbox" id="meny_tom_check"></p>                
+            </div>
+        </div>
+        
+        
+        <div style="display:none" id="andra">
+            <div>
+                Artikel: <span id="andra_artnr">
+            </div>
+            <div>
+                <span id="andra_namn"></span>
+            </div>
+            <div>
+                Nytt antal: <input id="andra_antal"><span id="andra_enhet"></span>
+            </div>
+            <input id="andra_pos" style="display:none">
+                <button class="okButton" onclick="doAndraAntal();displayDiv('scan');">OK</button>
+                <button onclick="displayDiv('scan')">Avbryt</button>
+        </div>
+
+
+        
+        <div style="display:none" id="skicka">
+            <div style="margin-bottom: 12px;">
+                <button onclick="displayDiv('scan')">Tillbaka</button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                Kund:<br> <input id="skicka_kundnr" disabled><br>
+                <input id="skicka_namn" disabled>
+                <br>
+                <button onclick="displayDiv('kund')">Välj kund</button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                Ange märkning: <input id="skicka_marke">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <button class="okButton" onclick="skickaOrder()">Skicka order!</button>
+            </div>
+            <div id="skicka_svar" style="margin-bottom: 12px; border: 1px solid black; padding: 12px;">
+            </div>
+        </div>
+        
+        
+        <div style="display:none" id="kund">
+            <div style="margin-bottom: 12px;">
+                <button onclick="displayDiv('scan')">Tillbaka</button>
+                <button onclick="displayDiv('skicka')">Skicka order</button>
+            </div>
+            <table>
+                <tr><td>Kundnr:</td><td><input id="kund_kundnr"></td></tr>
+                <tr><td>Namn:</td><td><input id="kund_namn"></td></tr>
+            </table>
+            <div>
+                <button class="okButton" onclick="sparaKund()">Spara ny kund</button>
+            </div>
+                <div><b>Kunder</b></div>
+                <table id="kunder-table">
+                </table>
+            
+        </div>
+        
+        <div id="debug"></div>
+    </body>
+</html>

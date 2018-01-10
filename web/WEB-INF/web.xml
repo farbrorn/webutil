@@ -20,6 +20,14 @@
         <servlet-name>SkapaTemporarArtikelServlet</servlet-name>
         <servlet-class>se.saljex.webutil.sxas.SkapaTemporarArtikelServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>getArtikelLista</servlet-name>
+        <servlet-class>se.saljex.webutil.orderscanner.getArtikelLista</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>sendOrder</servlet-name>
+        <servlet-class>se.saljex.webutil.orderscanner.sendOrder</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>OverforBilligt</servlet-name>
         <url-pattern>/billigt/overfor</url-pattern>
@@ -39,6 +47,14 @@
     <servlet-mapping>
         <servlet-name>SkapaTemporarArtikelServlet</servlet-name>
         <url-pattern>/saljexas/SkapaTemporarArtikel</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>getArtikelLista</servlet-name>
+        <url-pattern>/orderscanner/getArtikelLista</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>sendOrder</servlet-name>
+        <url-pattern>/orderscanner/sendOrder</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
