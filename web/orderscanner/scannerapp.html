@@ -437,7 +437,10 @@
             req.open("POST", basURL+"/sendOrder");
             req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             var kundnr=document.getElementById('skicka_kundnr').value;
-            req.send("order=" + JSON.stringify(rader) + "&marke=" + encodeURIComponent(document.getElementById('skicka_marke').value) + "&kundnr=" + encodeURIComponent(kundnr));
+            req.send("order=" + JSON.stringify(rader) 
+                    + "&marke=" + encodeURIComponent(document.getElementById('skicka_marke').value) 
+                    + "&anvandare=" + encodeURIComponent(document.getElementById('skicka_anvandare').value) 
+                    + "&kundnr=" + encodeURIComponent(kundnr));
         };
         
     }
@@ -697,6 +700,9 @@
             </div>
             <div style="margin-bottom: 12px;">
                 Ange märkning: <input id="skicka_marke">
+            </div>
+            <div style="margin-bottom: 12px;">
+                Ange användare: <input style='width: 3em;' id="skicka_anvandare">
             </div>
             <div style="margin-bottom: 12px;">
                 <button class="okButton" onclick="skickaOrder()">Skicka order!</button>

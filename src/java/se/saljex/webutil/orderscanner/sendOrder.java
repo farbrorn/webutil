@@ -14,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -48,6 +49,7 @@ public class sendOrder extends HttpServlet {
         
         String marke = request.getParameter("marke");
         String kundnr = request.getParameter("kundnr");
+        String anvandare = request.getParameter("anvandare");
         String jsonOrderString = request.getParameter("order");
         Integer ordernr=null;
         
@@ -70,8 +72,6 @@ public class sendOrder extends HttpServlet {
 
                         PreparedStatement ps; 
                         PreparedStatement psArtikel = con.prepareStatement("select nummer from sxasfakt.artikel where nummer=?"); 
-//                        ps= con.prepareStatement("select o1.ordernr, o1.namn as kundnamn, o2.artnr, o2.namn as artnamn, o2.lev, o2.netto, o2.enh, a.nummer as a_nummer  from sxasfakt.order1 o1 join sxasfakt.order2 o2 on o1.ordernr=o2.ordernr left outer join sxasfakt.artikel a on a.nummer=o2.artnr where o2.artnr is not null and o2.artnr <> '' and o2.lev<>0 and status='Samfak' and o1.ordernr=?");
-//                        ps.setQueryTimeout(60);
                         for (int cn=0; cn<size; cn++) {
                             JsonObject jsonObject = jsonArray.getJsonObject(cn);
                             out.print(jsonObject.getJsonString("artnr").getString() +" "+ jsonObject.getJsonString("namn").getString() + "<br>");
@@ -92,17 +92,22 @@ public class sendOrder extends HttpServlet {
                         ordernr = rs.getInt(1);
                         if (ordernr==null) throw new SQLException("null-värde för ordernummer från sxasfakt.fdordernr");
                         if (statement.executeUpdate("update sxasfakt.fdordernr set ordernr = ordernr+1")<1) throw new SQLException("Kan inte uppdatera sxasfakt.fdordernr. ");
-//                           statement.executeUpdate("create temporary sequence pos;");
 
                         ps = con.prepareStatement("select nummer from sxasfakt.kund where nummer=?");
                         ps.setString(1, kundnr);
                         if (!ps.executeQuery().next()) throw new SQLException("Felaktigt kundnummer: " + kundnr);   
+                        
+                        ps = con.prepareStatement("select forkortning from sxasfakt.saljare where forkortning=?");
+                        ps.setString(1, anvandare);
+                        if (!ps.executeQuery().next()) throw new SQLException("Felaktigt användare: " + anvandare);   
 
-                        ps = con.prepareStatement("create temporary table kon on commit drop as select ?::varchar as kundnr, ? as ordernr, ?::varchar as marke;");
+                        ps = con.prepareStatement("create temporary table kon on commit drop as select ?::varchar as kundnr, ? as ordernr, ?::varchar as marke, ?::varchar as anvandare;");
                         ps.setString(1, kundnr);
                         ps.setInt(2, ordernr);
                         ps.setString(3, marke);
+                        ps.setString(4, anvandare);
                         ps.executeUpdate();
+                        
 /*
                         if (statement.executeUpdate(
                                 "insert into sxasfakt.offert1 (offertnr, namn, adr1, adr2, adr3, levadr1, levadr2, levadr3, saljare, referens, kundnr, marke, datum, moms, ktid, bonus, faktor, mottagarfrakt,  fraktfrigrans, skrivejpris, lagernr) " +
@@ -120,6 +125,7 @@ public class sendOrder extends HttpServlet {
                                 " ;"
                         ) <1) throw new SQLException("Kan inte skapa sxasfakt.offert2 (offertnr " + offertnr + ")");
 */
+
                         if (statement.executeUpdate(
                                 "insert into sxasfakt.order1 (ordernr, dellev, status, namn, adr1, adr2, adr3, levadr1, levadr2, levadr3, saljare, referens, kundnr, marke, datum, moms, ktid, bonus, faktor, mottagarfrakt,  fraktfrigrans, lagernr) " +
                                 " select kon.ordernr,1, 'Avvakt', k.namn, k.adr1, k.adr2, k.adr3, k.lnamn, k.ladr2, k.ladr3, k.saljare, k.ref, k.nummer, kon.marke, current_date, 0, k.ktid, k.bonus, k.faktor, k.mottagarfrakt, k.fraktfrigrans, 0 " +
@@ -134,13 +140,18 @@ public class sendOrder extends HttpServlet {
                                 " 0,'' , round((v.inpris*(1-v.rab/100)*(1+v.inp_fraktproc/100)+v.inp_frakt+v.inp_miljo)::numeric,2), v.enhet " +
                                  " from (select artnr, sum(lev) as lev, min(pos) as pos from orderrader group by artnr order by artnr) orad "
                                 + " join kon on 1=1 "
-                                + " join sxasfakt.vartkundorder v on orad.artnr=v.artnr and lagernr=0 and kon.kundnr=v.kundnr " +
+                                + " join sxasfakt.vartkundorder v on orad.artnr=v.artnr and lagernr=0 and v.kundnr=(select kundnr from kon) " +
                                 " ;"
                         ) <1) throw new SQLException("Kan inte skapa sxasfakt.order2 (offertnr " + ordernr + ")");
 
                         if (statement.executeUpdate(
                                 "update sxasfakt.order2 set summa=round((pris*lev*(1-rab/100))::numeric,2) where ordernr=(select kon.ordernr from kon);"
                         ) <1) throw new SQLException("Kan inte uppdatera radsummor för sxasfakt.order2 (ordernr " + ordernr + ")");
+
+                        if (statement.executeUpdate(
+                                "insert into sxasfakt.orderhand (ordernr, datum, tid, anvandare, handelse) "
+                                + "select kon.ordernr, current_date, current_time, kon.anvandare, 'Skapad' from kon;"                                                                
+                        ) <1) throw new SQLException("Fel vid skapande av OrderHand");
 
 // Gör inte detta i sxas eftersom lagertabellen inte finns där
 //                        if (statement.executeUpdate(
