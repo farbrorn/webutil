@@ -52,6 +52,7 @@ public class sendOrder extends HttpServlet {
         String anvandare = request.getParameter("anvandare");
         String jsonOrderString = request.getParameter("order");
         Integer ordernr=null;
+        StringBuilder sb = new StringBuilder();
         
         try (PrintWriter out = response.getWriter()) {
             try {
@@ -74,7 +75,6 @@ public class sendOrder extends HttpServlet {
                         PreparedStatement psArtikel = con.prepareStatement("select nummer from sxasfakt.artikel where nummer=?"); 
                         for (int cn=0; cn<size; cn++) {
                             JsonObject jsonObject = jsonArray.getJsonObject(cn);
-                            out.print(jsonObject.getJsonString("artnr").getString() +" "+ jsonObject.getJsonString("namn").getString() + "<br>");
                             String artnr = jsonObject.getJsonString("artnr").getString();
                             orderraderStatement.setString(1, artnr);
                             Double antal = 0.0;
@@ -84,6 +84,7 @@ public class sendOrder extends HttpServlet {
                             psArtikel.setString(1, artnr);
                             ResultSet rsArtikel = psArtikel.executeQuery();
                             if (!rsArtikel.next()) throw new SQLException("Artikel " + artnr + " saknas. Kan inte spara order.");
+                            sb.append(jsonObject.getJsonString("artnr").getString() +" "+ jsonObject.getJsonString("namn").getString() + "<br>");
                         }
                         ResultSet rs;
                         rs = statement.executeQuery("select ordernr from sxasfakt.fdordernr");
@@ -99,7 +100,7 @@ public class sendOrder extends HttpServlet {
                         
                         ps = con.prepareStatement("select forkortning from sxasfakt.saljare where forkortning=?");
                         ps.setString(1, anvandare);
-                        if (!ps.executeQuery().next()) throw new SQLException("Felaktigt användare: " + anvandare);   
+                        if (!ps.executeQuery().next() || anvandare == null || anvandare.length()<1) throw new SQLException("Felaktigt användare: " + anvandare);   
 
                         ps = con.prepareStatement("create temporary table kon on commit drop as select ?::varchar as kundnr, ? as ordernr, ?::varchar as marke, ?::varchar as anvandare;");
                         ps.setString(1, kundnr);
@@ -167,7 +168,8 @@ public class sendOrder extends HttpServlet {
                 } finally {
                     try { con.setAutoCommit(true); }catch (SQLException se) {}
                 }
-                out.println("<h1>Order sparad!</h1>Denna order är nu sparad i systemet med ordernr " + ordernr);
+                out.println("<h1>Order sparad!</h1><p>Denna order är nu sparad i systemet med ordernr " + ordernr + "</p>");
+                out.print("<p>" + sb.toString() + "</p>");
             } catch (Exception e) { out.println("<h1>Sorry... Vi har ett problem. </h1>" + e.getMessage() + " " + e.toString());}
         }
     }
