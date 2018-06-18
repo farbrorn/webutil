@@ -5,14 +5,23 @@
  */
 package se.saljex.webutil.sxas;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +46,7 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("text/html;charset=ISO-8859-1");
         String ac=request.getParameter("ac");
         boolean acIsSave = "save".equals(ac);
         Connection con = Const.getSuperUserConnection(request);
@@ -46,14 +55,19 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
         String bestnr = request.getParameter("bestnr");
         String enhet = request.getParameter("enhet");
         String anvandare = request.getParameter("anvandare");
+        String cn8 = request.getParameter("cn8");
         Double inprisAS = null;
         Double utprisAS = null;
         Double inprisAB = null;
         Double utprisAB = null;
+        Double valutaKurs = null;
         try { inprisAB = Double.parseDouble(request.getParameter("inprisab")); } catch (Exception e) {}
         try { utprisAS = Double.parseDouble(request.getParameter("utprisas")); } catch (Exception e) {}
-
+        
         StringBuilder sb = new StringBuilder();
+
+      
+        
         boolean isError = false;
         PreparedStatement ps;
         ResultSet rs;
@@ -70,6 +84,10 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
                 if (enhet==null || enhet.length()<1) {
                     isError = true;
                     sb.append("Enheten är felaktig.<br>");
+                } 
+                if (cn8==null || cn8.length()<1 || cn8.length() > 8) {
+                    isError = true;
+                    sb.append("Tullkoden är felaktig.<br>");
                 } 
                 ps = con.prepareStatement("select namn from sxfakt.lev where nummer=?");
                 ps.setQueryTimeout(60);
@@ -89,6 +107,17 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
                     sb.append("Felaktig användare<br>");
                 }
                 
+                ps = con.prepareStatement("select kurs from sxfakt.valuta where valuta = 'NOK'");
+                ps.setQueryTimeout(60);
+                rs = ps.executeQuery();
+                if (!rs.next()) {
+                    isError=true;
+                    sb.append("Felaktig användare<br>");
+                } else {
+                    valutaKurs = rs.getDouble(1);
+                }
+
+                
                 
                 if (inprisAB==null) {
                     isError=true;
@@ -100,8 +129,8 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
                 }
                
                 if (!isError) {
-                    inprisAS = new BigDecimal(inprisAB/0.95).setScale(2, RoundingMode.HALF_UP).doubleValue();
-                    utprisAB = inprisAB*3;
+                    inprisAS = new BigDecimal(inprisAB/0.95/valutaKurs).setScale(2, RoundingMode.HALF_UP).doubleValue();
+                    utprisAB = new BigDecimal(utprisAS*valutaKurs).setScale(2, RoundingMode.HALF_UP).doubleValue();
 
                     con.setAutoCommit(false);
                     ps = con.prepareStatement("select 'XN*'||nextval('sxfakt.tempartnr')");
@@ -112,8 +141,8 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
                     String tArtnr = rs.getString(1);
 
                     //Säljex AB
-                    ps = con.prepareStatement("insert into sxfakt.artikel (nummer, namn, lev, bestnr, refnr, enhet, utpris, inpris, utrab, rabkod, inpdat, prisdatum, tbidrag, forpack, hindraexport) values " +
-                                                " (?, ?, ?, ?, ?, ?, ?, ?, 0, 'NTO', current_date, current_date, 0, 1, 1)");
+                    ps = con.prepareStatement("insert into sxfakt.artikel (nummer, namn, lev, bestnr, refnr, enhet, utpris, inpris, utrab, rabkod, inpdat, prisdatum, tbidrag, forpack, hindraexport, cn8) values " +
+                                                " (?, ?, ?, ?, ?, ?, ?, ?, 0, 'NTO', current_date, current_date, 0, 1, 1, ?)");
                     ps.setQueryTimeout(60);
                     ps.setString(1, tArtnr);
                     ps.setString(2, namn);
@@ -123,11 +152,12 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
                     ps.setString(6, enhet);
                     ps.setDouble(7,utprisAB );
                     ps.setDouble(8,inprisAB );
+                    ps.setString(9,cn8 );
                     if (ps.executeUpdate()<1) throw new SQLException("Kunde inte skapa artikel " + tArtnr + " i säljex AB");
 
                     //Saljex AS
-                    ps = con.prepareStatement("insert into sxasfakt.artikel (nummer, namn, lev, bestnr, refnr, enhet, utpris, inpris, utrab, rabkod, inpdat, prisdatum, tbidrag, forpack, hindraexport) values " +
-                                                " (?, ?, ?, ?, ?, ?, ?, ?, 0, 'NTO', current_date, current_date, 0, 1, 1)");
+                    ps = con.prepareStatement("insert into sxasfakt.artikel (nummer, namn, lev, bestnr, refnr, enhet, utpris, inpris, utrab, rabkod, inpdat, prisdatum, tbidrag, forpack, hindraexport, cn8) values " +
+                                                " (?, ?, ?, ?, ?, ?, ?, ?, 0, 'NTO', current_date, current_date, 0, 1, 1, ?)");
                     ps.setQueryTimeout(60);
                     ps.setString(1, tArtnr);
                     ps.setString(2, namn);
@@ -137,6 +167,7 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
                     ps.setString(6, enhet);
                     ps.setDouble(7,utprisAS );
                     ps.setDouble(8,inprisAS );
+                    ps.setString(9,cn8 );
                     if (ps.executeUpdate()<1) throw new SQLException("Kunde inte skapa artikel " + tArtnr + " i Saljex SB");
                     
 
@@ -169,7 +200,8 @@ public class SkapaTemporarArtikelServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Skapa temporär artikel</title>");            
+            out.println("<title>Skapa temporär artikel</title>");  
+            out.println("<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">");
             out.println("</head>");
             out.println("<body>");
 

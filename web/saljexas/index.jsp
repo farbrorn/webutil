@@ -15,5 +15,8 @@
         <h1>Saljex AS</h1>
         <p><a href="OverforOrder">Överför order</a></p>
         <p><a href="SkapaTemporarArtikel">Skapa temporär artikel</a></p>
+        <p><a href="admin?a=lager">Överför lagersaldon till AB</a></p>
+        <p><a href="admin?a=valuta">Hämta dagens NOK valutakurs</a></p>
+        <p><a href="admin?a=artiklar">Uppdatera artiklar i AS</a></p>
     </body>
 </html>
