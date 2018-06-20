@@ -1,5 +1,7 @@
+<!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Scannertest</title>
         <meta charset="UTF-8">
     <script>
@@ -68,8 +70,24 @@
           alert("Fel när orderlista skulle läsas." + event.target.errorCode);
         };    
 
+        document.getElementById("artiklar-table").innerHTML = "";
         var objectStore = transaction.objectStore("orderlista");
-        var raderAll = objectStore.getAll();
+// Använda objectstore utran getAll() vilken inte fungerar i Edge 
+        objectStore.openCursor().onsuccess = function(event){
+            var table = document.getElementById("artiklar-table");
+            var cursor=event.target.result;
+            if (cursor) {
+                var row = table.insertRow(0);
+                row.insertCell(0).innerHTML = cursor.value.artnr + "<br>" + cursor.value.namn;
+                row.insertCell(1).innerHTML = cursor.value.antal + " " + cursor.value.enhet;
+                row.insertCell(2).innerHTML = '<button onclick="andraAntal(' + cursor.value.pos + ')" >Ändra</button>';
+                row.insertCell(3).innerHTML = '<button onclick="taBortOrderrad(' + cursor.value.pos + ')" >Ta bort</button>';
+                
+                cursor.continue();
+            }
+        }
+                
+/*        var raderAll = objectStore.getAll();
         raderAll.onsuccess = function() {
             var rader = raderAll.result;
             var arrayLength = rader.length;
@@ -78,16 +96,16 @@
             for (var i = 0; i < arrayLength; i++) {
                 
                 var row = table.insertRow(0);
-                row.insertCell(0).innerHTML = rader[i].artnr;
-                row.insertCell(1).innerHTML = rader[i].namn;
-                row.insertCell(2).innerHTML = rader[i].antal + " " + rader[i].enhet;
-                row.insertCell(3).innerHTML = '<button onclick="andraAntal(' + rader[i].pos + ')" >Ändra</button>';
-                row.insertCell(4).innerHTML = '<button onclick="taBortOrderrad(' + rader[i].pos + ')" >Ta bort</button>';
+                row.insertCell(0).innerHTML = rader[i].artnr + "<br>" + rader[i].namn;
+//                row.insertCell(1).innerHTML = rader[i].namn;
+                row.insertCell(1).innerHTML = rader[i].antal + " " + rader[i].enhet;
+                row.insertCell(2).innerHTML = '<button onclick="andraAntal(' + rader[i].pos + ')" >Ändra</button>';
+                row.insertCell(3).innerHTML = '<button onclick="taBortOrderrad(' + rader[i].pos + ')" >Ta bort</button>';
                 
                //addRow(rader[i].artnr, rader[i].antal); 
             }
         };
-
+*/
     }
     
     function taBortOrderrad(pos) {
@@ -229,8 +247,9 @@
             clear_artikel();
         }
         if (event.keyCode==13) {
-            getArtikel();
-        }
+            getArtikel( function() {             if (currentArtikel.artnr == document.getElementById("i_artnr").value) document.getElementById("i_antal").focus();
+                         });
+      }
     }
 
     function artnrFocusOut() {
@@ -238,7 +257,7 @@
     }
 
     var currentArtikel;
-    function getArtikel() {
+    function getArtikel(callback) {
         var artnr = document.getElementById("i_artnr").value;
         
         if (artnr) {
@@ -276,6 +295,7 @@
                     document.getElementById("b_antal2").setAttribute("value", forpack);
                     document.getElementById("b_antal3").innerHTML=forpack*2 + " " + currentArtikel.enhet;
                     document.getElementById("b_antal3").setAttribute("value", forpack*2);
+                    if (callback) callback();
                 } else {
                     clear_artikel();
                 }
@@ -419,6 +439,52 @@
         };    
 
         var objectStore = transaction.objectStore("orderlista");
+
+        var rader = [];
+        objectStore.openCursor().onsuccess = function(event) {
+            var cursor=event.target.result;
+            if (cursor) {
+                rader.push(cursor.value);
+                cursor.continue();
+            } else {
+            
+                var req = new XMLHttpRequest();
+                req.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                       var str = req.responseText;
+                       document.getElementById("skicka_svar").innerHTML=str;
+                    }
+                    if (this.readyState == 4 && this.status != 200) {
+                       document.getElementById("skicka_svar").innerHTML="<b>Fel när förfrågan behandlades. (" + this.status + "). Ordern är inte sparad. Prova igen.</b>";
+                    }
+
+                };
+                req.open("POST", basURL+"/sendOrder");
+                req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                var kundnr=document.getElementById('skicka_kundnr').value;
+                req.send("order=" + JSON.stringify(rader) 
+                        + "&marke=" + encodeURIComponent(document.getElementById('skicka_marke').value) 
+                        + "&anvandare=" + encodeURIComponent(document.getElementById('skicka_anvandare').value) 
+                        + "&kundnr=" + encodeURIComponent(kundnr));
+            }
+        };
+        
+        
+        /*
+
+var items = [];
+      cursorRequest.onsuccess = function(evt) {                    
+        var cursor = evt.target.result;
+        if (cursor) {
+            items.push(cursor.value);
+            cursor.continue();
+        }
+    };
+        
+  */       
+
+        
+/*        
         var raderAll = objectStore.getAll();
         raderAll.onsuccess = function() {
             var rader = raderAll.result;
@@ -442,7 +508,7 @@
                     + "&anvandare=" + encodeURIComponent(document.getElementById('skicka_anvandare').value) 
                     + "&kundnr=" + encodeURIComponent(kundnr));
         };
-        
+  */      
     }
     
     function sparaKund() {
@@ -478,11 +544,28 @@
         transaction.oncomplete = function(event) {
         }; 
         transaction.onerror = function(event) {
-          alert("Fel när orderlista skulle läsas." + event.target.errorCode);
+          alert("Fel när kundlista skulle läsas." + event.target.errorCode);
         };    
 
+        document.getElementById("kunder-table").innerHTML="";
         var objectStore = transaction.objectStore("kund");
-        var raderAll = objectStore.getAll();
+// Använda objectstore utran getAll() vilken inte fungerar i Edge 
+        objectStore.openCursor().onsuccess = function(event){
+            var table = document.getElementById("kunder-table");
+            var cursor=event.target.result;
+            if (cursor) {
+                var row = table.insertRow(0);
+                row.insertCell(0).innerHTML = cursor.value.kundnr;
+                row.insertCell(1).innerHTML = cursor.value.namn;
+                row.insertCell(2).innerHTML = '<button onclick="taBortKund(\'' + cursor.value.kundnr + '\')" >Ta bort</button>';
+                row.insertCell(3).innerHTML = '<button onclick="setKund(\'' + cursor.value.kundnr + '\', \'' + cursor.value.namn + '\' )" >Välj</button>';
+
+                cursor.continue();
+            }
+        }
+ 
+        
+/*        var raderAll = objectStore.getAll();
         raderAll.onsuccess = function() {
             var rader = raderAll.result;
             var arrayLength = rader.length;
@@ -496,6 +579,7 @@
                 row.insertCell(3).innerHTML = '<button onclick="setKund(\'' + rader[i].kundnr + '\', \'' + rader[i].namn + '\' )" >Välj</button>';
             }
         };
+*/
     }
     
     function taBortKund(kundnr) {
@@ -530,13 +614,22 @@
         .numtable {
             width: 100%;
             max-width: 300px;
+            table-layout: fixed;
         }
         .numtable td {
+            width: 33.3%;
         }
         .numtable button {
             width: 100%;
             height: 100%;
             min-height: 60px;
+        }
+        
+        .scan-artprompt {
+            width: 5em;
+            display: inline-block;
+            margin-bottom: 2px;
+            font-size: 70%;
         }
        
         .antalbtn {
@@ -555,9 +648,10 @@
         }
         #i_artnr {
             width: 6em;
+            margin-bottom: 2px;
         }
         #i_antal {
-            width: 4em;
+            width: 3em;
         }
         #header {
             margin-bottom: 12px;
@@ -579,9 +673,11 @@
         }
         #artiklar-table {
             font-size: 20px;
+            border-collapse: collapse;
         }
         #artiklar-table td {
             padding: 4px 10px 4px 2px;
+            border-top: 1px solid grey;
         }
         #andra div {
             margin-bottom: 12px;
@@ -622,10 +718,10 @@
                 <button onclick="displayDiv('skicka')">Skicka Order</button>
             </div>
             <div id="input-div">
-                Artikel: <input id="i_artnr" onfocusout="artnrFocusOut()" onkeyup="artnrKeyUp(event)" >
-                Antal: <input id="i_antal">
+                <div style="display: inline-block; margin-right: 8px;"><div class="scan-artprompt">Artikel:</div><input id="i_artnr" onfocusout="artnrFocusOut()" onkeyup="artnrKeyUp(event)" ></div>
+                <div style="display: inline-block; margin-right: 8px;"><div class="scan-artprompt">Antal:</div><input id="i_antal"></div>
             </div>
-            <div style="min-height: 1em">
+            <div style="min-height: 2em">
                 <span style="display: none" id="a_artnr"></span><span id="a_namn"></span> <span id="a_minsaljpack"></span> <span id="a_enhet"></span><span style="display: none" id="a_forpack"></span>
             </div>
             <div id="log"></div>
@@ -673,7 +769,7 @@
         
         <div style="display:none" id="andra">
             <div>
-                Artikel: <span id="andra_artnr">
+                Artikel: <span id="andra_artnr"></span>
             </div>
             <div>
                 <span id="andra_namn"></span>
