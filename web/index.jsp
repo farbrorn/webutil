@@ -6,13 +6,13 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>SÃ¤ljex</title>
+        <title>Säljex</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
         <%@include file="/WEB-INF/sxheader.jsp" %>
-        <p><a href="rabattunderhall">RabattunderhÃ¥ll</a></p>
+        <p><a href="rabattunderhall">Rabattunderhåll</a></p>
         <p><a href="order">Orderhantering</a></p>
         <p><a href="fakturor">Fakturor</a></p>
         <p><a href="saljexas">Saljex AS</a></p>
