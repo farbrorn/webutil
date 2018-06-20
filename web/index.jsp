@@ -12,6 +12,7 @@ and open the template in the editor.
     </head>
     <body>
         <%@include file="/WEB-INF/sxheader.jsp" %>
+        <h1>Huvudmeny</h1>
         <p><a href="rabattunderhall">Rabattunderhåll</a></p>
         <p><a href="order">Orderhantering</a></p>
         <p><a href="fakturor">Fakturor</a></p>

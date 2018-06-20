@@ -34,6 +34,7 @@
     </head>
     
     <body>
+        <%@include file="/WEB-INF/sxheader.jsp" %>
         <h1>Rabattgrupper</h1>
         
     

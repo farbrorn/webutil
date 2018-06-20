@@ -34,11 +34,8 @@
          </style>
 
     <body>
+        <%@include file="/WEB-INF/sxheader.jsp" %>
         <h1>Översikt rabatter</h1>
-        
-        
-        
-        
         
     
         <h2>Kunder med för hög rabatt</h2>

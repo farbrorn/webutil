@@ -18,6 +18,7 @@
         <p><a href="oversikt.jsp">Översiktrapport rabatter</a></p>
         <p><a href="kundstatistik.jsp">Rabatter och försäljningsstatistik på kund</a></p>
         <p><a href="grupper-med-statistik.jsp">Grupper med info & statistik</a></p>
+        <p><a href="grupper-med-artiklar.jsp">Grupper med artiklar</a></p>
 
     </body>
 </html>

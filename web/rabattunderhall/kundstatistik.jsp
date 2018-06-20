@@ -35,6 +35,7 @@
     </head>
     
     <body>
+        <%@include file="/WEB-INF/sxheader.jsp" %>
         <h1>Kundstatistik</h1>
     
         <%
