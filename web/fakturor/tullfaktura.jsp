@@ -35,6 +35,10 @@
                 try { antalKolli=Integer.parseInt(request.getParameter("kolli")); } catch (Exception e) {}
                 
                 String ankomst = request.getParameter("ankomst");
+                String bilregnr = request.getParameter("bilregnr");
+                String meddelande = request.getParameter("meddelande");
+                String gransort = request.getParameter("gransort");
+                
                 
                 boolean saljexas=("true".equals(request.getParameter("saljexas")));
                 boolean skrivEUUrsprung=("true".equals(request.getParameter("skriveuursprung")));
@@ -232,8 +236,14 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
     </table>
 </div>
 
-            <% if (ankomst != null) { %>
-            <div><b>Arrival: <%= SXUtil.toHtml(ankomst) %></b></div>
+            <% if (ankomst != null || gransort !=null) { %>
+                <div><b>Arrival: <%= SXUtil.toHtml(ankomst) %> at <%= SXUtil.toHtml(gransort) %></b></div><br>
+            <% } %>
+            <% if (bilregnr != null) { %>
+                <div><b>Car registration number: <%= SXUtil.toHtml(bilregnr) %></b></div><br>
+            <% } %>
+            <% if (meddelande != null) { %>
+                <div><b>Message: <%= SXUtil.toHtml(meddelande) %></b></div><br>
             <% } %>
 
 
@@ -252,7 +262,26 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
                         <tr><td>Fakturanr:</td><td><input name="faktnr" value="<%= SXUtil.noNull(faktnr) %>"></td></tr>
                     <tr><td>Antal kolli: </td><td><input name="kolli" value="<%= SXUtil.noNull(antalKolli) %>"></td></tr>
                     <tr><td>Total vikt: </td><td><input name="vikt" value="<%= SXUtil.noNull(totalVikt) %>"></td></tr>
-                    <tr><td>Ankomst, datum & tid: </td><td><input name="ankomst" value="<%= SXUtil.toHtml(ankomst) %>"></td></tr>
+                    <tr><td>Ankomst datum & tid: </td><td><input name="ankomst" value="<%= SXUtil.toHtml(ankomst) %>"></td></tr>
+                    <tr><td>Gränsort: </td><td>
+                            <input list="gransorter" name="gransort" value="<%= SXUtil.toHtml(gransort) %>">
+                            <datalist id="gransorter">
+                                <option value="Eda">
+                                <option value="Hån">
+                            </datalist>
+                        </td></tr>
+                    <tr><td>Bilnr</td><td>
+                            <input list="bilar" name="bilregnr" value="<%= SXUtil.toHtml(bilregnr) %>">
+                            <datalist id="bilar">
+                                <option value="ENC005 - Buss">
+                                <option value="NZN970 - Scania">
+                                <option value="XXP556 - Iveco">
+                            </datalist>
+                        
+                        </td></tr>
+                    <tr><td>Meddelande: </td><td><input name="meddelande" value="<%= SXUtil.toHtml(meddelande) %>"></td></tr>
+
+                    
                     
                     <tr><td colspan="2">Faktura från Saljex AS<input type="checkbox" name="saljexas" value="true" <%= saljexas ? "checked" : "" %>></td></tr>
                     <tr><td colspan="2">Skriv intyg om EU-ursprung <input type="checkbox" name="skriveuursprung" value="true" <%= skrivEUUrsprung ? "checked" : "" %>></td></tr>
