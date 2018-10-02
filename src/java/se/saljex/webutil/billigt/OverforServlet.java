@@ -83,7 +83,7 @@ public class OverforServlet extends HttpServlet {
                    }
 
                 } catch (Exception e) { out.print("<red>Fel vid import </red>" + 
-                        e.toString() + " " + e.getMessage());
+                        e.toString() + " " + e.getMessage()); e.printStackTrace(out);
 
                 }
                 
