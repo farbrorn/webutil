@@ -16,6 +16,7 @@
         <h1>Order</h1>
       
         <p><a href="adressetikett.jsp">Skriv adressetikett</a></p>
+        <p><a href="ordererkannande.jsp">Skriv Ordererkännande</a></p>
 
     </body>
 </html>
