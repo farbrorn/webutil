@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.NumberFormat;
+import java.util.Locale;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServlet;
@@ -38,6 +40,12 @@ public class ArtikelbevakningServlet extends HttpServlet {
         boolean xml = "xml".equals(((ServletRequest)request).getParameter("export"));
         if (!xml) response.setContentType("text/html;charset=UTF-8");
         else response.setContentType("text/xml;charset=UTF-8");
+        
+        NumberFormat nf = NumberFormat.getInstance(new Locale("sv", "SE"));
+        nf.setMaximumFractionDigits(2);
+        nf.setMinimumFractionDigits(2);
+        nf.setGroupingUsed(false);
+        
         
         try (PrintWriter out = response.getWriter()) {
                 
@@ -79,7 +87,7 @@ public class ArtikelbevakningServlet extends HttpServlet {
                 }
                 while (rs.next()) {
                     if (!xml) {
-                        out.print("<tr><td>" + rs.getDate(6) +"</td><td>" + SXUtil.toHtml(rs.getString(1)) + "</td><td>" + SXUtil.toHtml(rs.getString(2)) + "</td><td>" + rs.getDouble(3) + "</td><td>" + SXUtil.toHtml(rs.getString("enhet")) + "</td><td>" + rs.getDate(4) + "</td><td>" + SXUtil.toHtml(rs.getString(5))  + "</td></tr>");
+                        out.print("<tr><td>" + rs.getDate(6) +"</td><td>" + SXUtil.toHtml(rs.getString(1)) + "</td><td>" + SXUtil.toHtml(rs.getString(2)) + "</td><td>" + nf.format(rs.getDouble(3)) + "</td><td>" + SXUtil.toHtml(rs.getString("enhet")) + "</td><td>" + rs.getDate(4) + "</td><td>" + SXUtil.toHtml(rs.getString(5))  + "</td></tr>");
                     } else {
                         out.print("<artikel>");
                         out.print("<handelsedatum>" + rs.getDate(6) + "</handelsedatum>");

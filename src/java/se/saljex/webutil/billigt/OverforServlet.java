@@ -5,9 +5,13 @@
  */
 package se.saljex.webutil.billigt;
 
+import com.sun.tools.ws.wsdl.document.http.HTTPUrlEncoded;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,11 @@ public class OverforServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     
+public static final String importURL = "https://billigtvvs.se/butikadmin/ordersXML.php?action=import";
+public static final String importOkURL = "https://billigtvvs.se/butikadmin/ordersXML.php?action=importOK";
+//public static final String importOkURL = "https://WWW.SALJEX.SE";
+    
+    
 	@EJB	
 	private SxServerMainRemote sxServerMainBean;
 
@@ -57,8 +66,10 @@ public class OverforServlet extends HttpServlet {
             String ac = request.getParameter("ac");
             String url = request.getParameter("url");
             //https://billigtvvs.se/wp-content/uploads/wpallexport/exports/0668442170e378ee2285ccfc14a67a39/current-Ordrar-Export-2017-June-15-0922-4.xml
+            
             if ("import".equals(ac)) {
                 try {
+                    
                     ArrayList<OrderImport> orderList = OverforXMLParser.parseXMLFromURL(url);
 
                     List<Integer> ol = sxServerMainBean.importOrder("00", orderList);
@@ -82,7 +93,14 @@ public class OverforServlet extends HttpServlet {
                             } 
                         }
                         out.print("</table><br><br>");
-                   }
+                   } 
+                    out.print("<div><h2>Svar från fjärrserver<h2>");
+                    URL okURL = new URL(importOkURL);
+                    BufferedReader okIn = new BufferedReader(new InputStreamReader(okURL.openStream()));
+                    String okInput;
+                    while ((okInput = okIn.readLine()) != null) out.print(okInput);
+                    okIn.close();
+                    out.print("</div>");
 
                 } catch (Exception e) { out.print("<red>Fel vid import </red>" + 
                         e.toString() + " " + e.getMessage()); e.printStackTrace(out);
@@ -94,7 +112,7 @@ public class OverforServlet extends HttpServlet {
                 
             } else {        //Default 
                 
-                if (url==null) url="";
+                if (url==null) url=importURL;
                 out.print("<form>Ange fullständig URL: <input name=\"url\" value=\"" + url + "\">" );
                 out.print("<input type=\"submit\" name=\"ac\" value=\"import\">");
                 out.print("</form>");

@@ -62,6 +62,15 @@ public class BilligtTimer {
 "where ba.bestnr  in (select si2.artnr from sxfakt.nettopri si2 where si2.lista='BILLIGT'); ";
 
         con.createStatement().executeUpdate(q);
+        
+        q="update sxfakt.nettopri n \n" +
+"set datum=current_date, pris = coalesce((\n" +
+"select  (a.inpris*(1-a.rab/100)*(1+a.inp_rab/100)+a.inp_frakt+a.inp_miljo)/(1-b.marginal/100) pris\n" +
+"from sxfakt.artikel a join sxfakt.bevisab_marginaler b on b.kod = rpad(a.rabkod,4) || rpad(coalesce(a.kod1,''),4) where a.inpris <> 0 and a.nummer=n.artnr), pris)\n" +
+"where n.lista='BILLIGT' ";
+        con.createStatement().executeUpdate(q);
+        
+        
         } catch (SQLException e) {
             Logger.getLogger("sx-logger").severe("SQL-Fel: vid uppdatera priser - " + e.getMessage()); e.printStackTrace();
         } finally { try {con.close();} catch (Exception eee) {}}		

@@ -12,6 +12,11 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
+        <a href="overfor">Överför order</a><br>
+        <a href="artikelbevakning">Artikelbevakning med priser</a><br>
+        <a href="artikelbevakning?export=xml">Artikelbevakning med priser i XML-format</a><br>
+        <a href="utleveranser">Visa utleveranser</a><br>
+        <a href="prisuppdatering">Uppdatera priser</a><br>
+        
     </body>
 </html>
