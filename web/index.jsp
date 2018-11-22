@@ -17,6 +17,7 @@ and open the template in the editor.
         <p><a href="order">Orderhantering</a></p>
         <p><a href="fakturor">Fakturor</a></p>
         <p><a href="saljexas">Saljex AS</a></p>
+        <p><a href="temprapport">Temp.rapport</a></p>
         
     </body>
 </html>
