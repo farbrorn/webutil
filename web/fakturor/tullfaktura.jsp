@@ -157,7 +157,7 @@ h2 {
 
 <%
 
-String q = "select f2.artnr, f2.namn, f2.summa, coalesce(case when cn8='' then null else cn8 end, 'x') as cn8, a.vikt*f2.lev as vikt "
+String q = "select f2.artnr, f2.namn, f2.summa, coalesce(case when cn8='' then null else cn8 end, 'x') as cn8, a.vikt*f2.lev as vikt, f2.lev, f2.enh "
 + " from " + prefix + "faktura2 f2 left outer join " + prefix + "artikel a on a.nummer=f2.artnr "
 +" where f2.faktnr= " + faktnr + " and f2.lev <> 0 order by cn8, artnr ";
 
@@ -167,12 +167,23 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
 
 <%         ResultSet rs = stm.executeQuery(q); %>
 <table style="margin-top: 2em; width: 100%">
-    <tr><th style="width: 10em">Itemcode</th><th style="width: 26em">Item</th><th style="width: 7em">CN8</th><th  style="text-align: right;"><%= valuta %></th></tr>
+    <tr><th style="width: 9em">Itemcode</th><th style="width: 23em">Item</th><th style="width: 6em">CN8</th>
+        <th style="width: 4em;"></th>
+        <th  style="width: 3em; text-align: right;">Qty</th>
+        <th  style="text-align: right;"><%= valuta %></th>
+    </tr>
 
 <%        
     while (rs.next()) {
 %>
-<tr><td><%= rs.getString("artnr") %></td><td><%= rs.getString("namn") %></td><td style="width: 7em"><%= rs.getString("cn8") %></td><td  style="width: 7em; text-align: right"><%= SXUtil.getFormatNumber(rs.getDouble("summa"),2) %></td></tr>
+<tr>
+    <td><%= rs.getString("artnr") %></td>
+    <td><%= rs.getString("namn") %></td>
+    <td style=""><%= rs.getString("cn8") %></td>
+    <td  style="text-align: right"><%= SXUtil.getFormatNumber(rs.getDouble("lev"),1) %></td>
+    <td  style="text-align: right"><%= SXUtil.toHtml(rs.getString("enh")) %></td>
+    <td  style="text-align: right"><%= SXUtil.getFormatNumber(rs.getDouble("summa"),2) %></td>
+</tr>
 <%        
     }
 %>

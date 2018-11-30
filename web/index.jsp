@@ -15,6 +15,7 @@ and open the template in the editor.
         <h1>Huvudmeny</h1>
         <p><a href="rabattunderhall">Rabattunderhåll</a></p>
         <p><a href="order">Orderhantering</a></p>
+        <p><a href="offert">Offerter</a></p>
         <p><a href="fakturor">Fakturor</a></p>
         <p><a href="saljexas">Saljex AS</a></p>
         <p><a href="temprapport">Temp.rapport</a></p>
