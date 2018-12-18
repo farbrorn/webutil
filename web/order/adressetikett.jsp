@@ -28,7 +28,7 @@
     if (rs.next()) logoUrl = rs.getString("varde");
                     
             
-    
+    Fie
     
     %>
     
