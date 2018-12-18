@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.security.RunAs;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import se.saljex.loginservice.LoginServiceConstants;
 import se.saljex.loginservice.User;
 import se.saljex.sxlibrary.OrderImport;
+import se.saljex.sxlibrary.SXUtil;
 import se.saljex.sxlibrary.SxServerMainRemote;
 
 /**
@@ -65,6 +67,7 @@ public static final String importOkURL = "https://billigtvvs.se/butikadmin/order
             
             String ac = request.getParameter("ac");
             String url = request.getParameter("url");
+            String gateway = request.getParameter("gateway");
             //https://billigtvvs.se/wp-content/uploads/wpallexport/exports/0668442170e378ee2285ccfc14a67a39/current-Ordrar-Export-2017-June-15-0922-4.xml
             
             if ("import".equals(ac)) {
