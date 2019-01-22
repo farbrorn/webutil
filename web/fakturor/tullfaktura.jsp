@@ -41,7 +41,7 @@
                 
                 
                 boolean saljexas=("true".equals(request.getParameter("saljexas")));
-                boolean skrivEUUrsprung=("true".equals(request.getParameter("skriveuursprung")));
+                boolean skrivInteEUUrsprung=("true".equals(request.getParameter("skrivinteeuursprung")));
                 
                 String prefix = saljexas ? "sxasfakt." : "sxfakt.";
                 
@@ -193,10 +193,10 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
 
 
 
-<% if (skrivEUUrsprung) { %>
+<% if (!skrivInteEUUrsprung) { %>
 <div>
     <br>
-    <b>Goods are of EU origin unless otherwise specified.</b>
+    <b>Goods are of European origin unless otherwise specified.</b>
 </div>
 <% } %>
 
@@ -247,13 +247,13 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
     </table>
 </div>
 
-            <% if (ankomst != null || gransort !=null) { %>
+            <% if (!SXUtil.isEmpty(ankomst) || !SXUtil.isEmpty(gransort)) { %>
                 <div><b>Arrival: <%= SXUtil.toHtml(ankomst) %> at <%= SXUtil.toHtml(gransort) %></b></div><br>
             <% } %>
-            <% if (bilregnr != null) { %>
+            <% if (!SXUtil.isEmpty(bilregnr)) { %>
                 <div><b>Car registration number: <%= SXUtil.toHtml(bilregnr) %></b></div><br>
             <% } %>
-            <% if (meddelande != null) { %>
+            <% if (!SXUtil.isEmpty(meddelande)) { %>
                 <div><b>Message: <%= SXUtil.toHtml(meddelande) %></b></div><br>
             <% } %>
 
@@ -263,6 +263,12 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
     } else {
 %>
 
+            <%  if (SXUtil.noNull(faktnr) == 0) {
+                 ResultSet rs = stm.executeQuery("select max(faktnr) from " + prefix + "faktura1");   
+                 if (rs.next()) faktnr = rs.getInt(1);
+            }
+      
+%>        
                 <%@include file="/WEB-INF/sxheader.jsp" %>
 
 <h2>Tulldeklaration</h2>
@@ -295,7 +301,7 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
                     
                     
                     <tr><td colspan="2">Faktura från Saljex AS<input type="checkbox" name="saljexas" value="true" <%= saljexas ? "checked" : "" %>></td></tr>
-                    <tr><td colspan="2">Skriv intyg om EU-ursprung <input type="checkbox" name="skriveuursprung" value="true" <%= skrivEUUrsprung ? "checked" : "" %>></td></tr>
+                    <tr><td colspan="2">Skriv INTE intyg om EU-ursprung <input type="checkbox" name="skrivinteeuursprung" value="true" <%= skrivInteEUUrsprung ? "checked" : "" %>></td></tr>
                     <tr><td colspan="2">Leveransadress (om annan än på fakturan):<br>
                     <input  name="levadr1" value="<%= SXUtil.toHtml(levAdr1) %>"><br>
                     <input  name="levadr2" value="<%= SXUtil.toHtml(levAdr2) %>"><br>
