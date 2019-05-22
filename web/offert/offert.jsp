@@ -108,7 +108,7 @@ h2 {
     <table style="width: 100%">
         <tr style="height: 80px;">
             <td style="width: 50%">
-                <img src="/p/s200/logo-saljex.png">
+                <img src="https://www.saljex.se/p/s200/logo-saljex.png">
             </td>
             <td style="width: 50%">
                 <span style="font-size: 200%; font-weight:bold">Offert <%= rsO1.getInt("offertnr") %></span><br>
@@ -117,10 +117,13 @@ h2 {
         </tr>
         <tr>
             <td style="width: 50%">
+                <div style="display: none">
                 <b>Vår kontaktperson</b><br>
                 <%= SXUtil.toHtml(rsO1.getString("saljare")) %>
                 <%= SXUtil.isEmpty(rsO1.getString("epost")) ? "" : "<br>E-post: " + rsO1.getString("epost") %>
                 <%= SXUtil.isEmpty(rsO1.getString("tel")) ? "" : "<br>Tel: " + rsO1.getString("tel") %>
+                </div>
+               
             </td>
             <td style="width: 50%">
                 <b>Kund</b><br>
@@ -220,6 +223,17 @@ h2 {
                     </TABLE>
                 </form>
 
+<%
+    ResultSet rs = stm.executeQuery("select offertnr, datum, namn from offert1 order by offertnr desc limit 30");
+    while (rs.next()) {
+%>    
+<a href="?offertnr=<%= rs.getInt("offertnr") %>">    
+    <%= rs.getInt("offertnr") %></a> &nbsp; 
+<%= rs.getString("datum") %> &nbsp; 
+<%= SXUtil.toHtml(rs.getString("namn")) %>
+<br>
+
+<% } %>
 <% } %>
 
 	</body>

@@ -46,7 +46,7 @@ public class SaljexAsTimer {
         BufferedReader valutaReader = null;
         try {    
             con = sxsuperuser.getConnection();
-            URL valutaURL=new URL("https://free.currencyconverterapi.com/api/v5/convert?q=NOK_SEK&compact=y");
+            URL valutaURL=new URL("https://free.currencyconverterapi.com/api/v5/convert?q=NOK_SEK&compact=y&apiKey=651acd318db35d2790b9");
             valutaReader = new BufferedReader(new InputStreamReader(valutaURL.openStream()));
             jsonReader = Json.createReader(valutaReader);
 
