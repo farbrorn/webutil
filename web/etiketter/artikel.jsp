@@ -26,7 +26,7 @@
     try {  kopior = new Integer(request.getParameter("kopior")); }catch (Exception e) {}
     if (kopior==null || kopior<0 || kopior > 1000) kopior = 1;
     
-    String storlek = request.getParameter("storlek");
+    String typ = request.getParameter("typ");
     
 
     boolean saljexas=("true".equals(request.getParameter("saljexas")));
@@ -67,7 +67,12 @@
                 margin: 0; 
                 font: 4mm arial;
             }
-            
+
+            .abs {
+              position: absolute;
+              top: 0;
+              left: 0;
+            }
             td {
                 padding: 0;
             }
@@ -156,29 +161,25 @@
             .etikett-s {
                 font-size: 3mm;
                 width: 70mm;
-                height: 26mm;
-                padding: 2mm;
+                height: 29mm;
                 overflow: hidden;
-                /* border: 1px solid black; */
-                margin: 0px;
+                position:relative;
             }
             .logo-s {
                 height: 25mm;
                 width: 10mm;
-                float: left;
+                //float: left;
+                left: 2mm;
+                top: 1mm;
+                position: absolute;
             }
             .logo-s img {
                 max-height: 25mm;
                 max-width: 10mm;
             }
-            .mid-content-s {
-                height: 25mm;
-                overflow: hidden;
-            }
             .bild-s {
                 width: 10mm;
                 height: 10mm;
-                margin-right: 5mm;
                 display: none;
             }
             .bild-s img {
@@ -189,23 +190,47 @@
                 font-size: 5mm;
                 font-weight: bold;
                 marign-top: 5mm;
+                top: 1mm;
+                left: 10mm;
+                position: absolute;
+            }
+            .namn-s-antalruta {
+                display: inline-block;
+                width: 46mm;
+                top: 6mm;
+                left: 10mm;
+                position: absolute;
             }
             .namn-s {
                 font-size: 4mm;
                 marign-top: 2mm;
                 height: 9mm;
                 overflow: hidden;
+                position: absolute;
+                top: 6mm;
+                left: 10mm;
+            }
+            .antalruta-s {
+                width: 12mm;
+                height: 6mm;
+                border: 1px solid black;
+                display: inline-block;
+                position: absolute;
+                top: 6mm;
+                left: 55mm;
             }
             .refnr-s {
-                display: inline;
-                margin-right: 3mm;
                 font-size: 3mm;
+                position: absolute;
+                top: 15mm;
+                left: 10mm;
                 
             }
             .rsk-s {
-                display: inline;
-                margin-right: 3mm;
-                font-size: 4mm;
+                font-size: 3mm;
+                position: absolute;
+                top: 15mm;
+                left: 30mm;
                 
             }
             .enhet-s {
@@ -215,7 +240,9 @@
 /*                font-family: 'Libre Barcode 39 Extended'; */
                 font-family: 'Libre Barcode 39 Text', cursive;
                 font-size: 10mm;
-                margin:0;
+                position: absolute;
+                top: 19mm;
+                left: 10mm;
                 
             }
             .underrubrik-s {
@@ -249,9 +276,10 @@
             <form>
                 Offertnr: <input name="offertnr" value="<%= SXUtil.noNull(offertnr) %>">
                 Ordernr: <input name="ordernr" value="<%= SXUtil.noNull(ordernr) %>">
-                <select name="storlek">
-                    <option value="n" <%= (storlek == null || "n".equals(storlek)) ? "selected" : "" %> >100x64</option>
-                    <option value="s" <%= "s".equals(storlek) ? "selected" : "" %> >70x30</option>
+                <select name="typ">
+                    <option value="n" <%= (typ == null || "n".equals(typ)) ? "selected" : "" %> >100x64</option>
+                    <option value="s" <%= "s".equals(typ) ? "selected" : "" %> >70x30</option>
+                    <option value="s-antalruta" <%= "s-antalruta".equals(typ) ? "selected" : "" %> >70x30 med antalruta</option>
                 </select>
                 <P>
                     Artikelnummer från: <input name="frartnr" value="<%= SXUtil.toStr(frartnr) %>">
@@ -267,7 +295,9 @@
 
 
         <%
-            String q = "select a.nummer, a.namn, a.refnr, a.rsk, a.enhet, a.forpack from  " + prefix + "artikel a ";
+            String q = "select a.nummer, a.namn, a.refnr, a.rsk, a.enhet, a.forpack ";
+            if (offertnr!=null || ordernr!=null) q=q+", o2.best"; else q=q+", null as best";
+            q=q+" from  " + prefix + "artikel a ";
             if (!SXUtil.isEmpty(frartnr) && !SXUtil.isEmpty(tiartnr)) {
                 q = q + " where nummer between ? and ? order by a.nummer";
                 ps = con.prepareStatement(q);
@@ -294,17 +324,22 @@
             <% for (int lp=0; lp<kopior; lp++) { %>
             
             
-            <% if ("s".equals(storlek)) { %>
+            <% if ("s".equals(typ) || "s-antalruta".equals(typ)) { %>
                 <div class="etikett-s">
                     <div class="logo-s"><img src="<%= logoUrl + logoBildSmall %>" onerror="this.style.display='none';"></div>
-                    <div class="mid-content-s">
                         <div class="artnr-s"><%= SXUtil.toHtml(rs.getString("nummer")) %></div>
-                        <div class="namn-s"><%= SXUtil.toHtml(rs.getString("namn")) %></div>
+                        <div class="namn-s <%= "s-antalruta".equals(typ) ? "namn-s-antalruta" : "" %>" ><%= SXUtil.toHtml(rs.getString("namn")) %></div>
+                         <% if ("s-antalruta".equals(typ)) { %>
+                         <div class="antalruta-s"><div style="position: absolute; top: 0; left: 1mm; font-size: 6px;">Antal</div>
+                             <div style="position: absolute; top: 2mm; left: 0; width: 100%; text-align: center">
+                             <%= rs.getDouble("best") != 0.0 ? SXUtil.getFormatNumber(rs.getDouble("best"),0) : "" %>
+                             </div>
+                             </div>
+                         <% } %>
                         <div class="refnr-s"><span class="underrubrik-s">Ref: </span><%= SXUtil.toHtml(rs.getString("refnr")) %></div>
                         <div class="rsk-s"><span class="underrubrik-s"><%= saljexas ? "NRF:" : "RSK:" %> </span><%= SXUtil.toHtml(rs.getString("rsk")) %></div>
                         <div class="enhet-s"><span class="underrubrik-s">Enhet: </span><%= SXUtil.toHtml(rs.getString("enhet")) %></div>
                         <div class="streckkod-s">*<%= SXUtil.toHtml(rs.getString("nummer")) %>*</div>
-                    </div>
                 </div>
             <% } else { %>
                 <div class="etikett">
