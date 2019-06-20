@@ -8,6 +8,7 @@
     var basURL="/webutil/orderscanner";
     var db;
     initDatabase(true);
+    
     function initDatabase(lasInArtiklar) {
         var request = window.indexedDB.open("scanner", 1);
         request.onerror = function(event) {
@@ -241,13 +242,25 @@
         
 //        addOrderRad(artnr, antal);
 //    }
+
+    function hideKeyboard(element) {
+        //console.log('hide');
+        element.readOnly=true;
+        setTimeout(function() {
+            //console.log('blure');
+            element.blur();
+            element.readOnly=false;
+        },100);
+    }
     
     function artnrKeyUp(event) {
         if (currentArtikel && document.getElementById("a_artnr").value!=currentArtikel.artnr) {
             clear_artikel();
         }
         if (event.keyCode==13) {
-            getArtikel( function() {             if (currentArtikel.artnr == document.getElementById("i_artnr").value) document.getElementById("i_antal").focus();
+            getArtikel( function() {             if (currentArtikel.artnr == document.getElementById("i_artnr").value) {
+                                                    document.getElementById("i_antal").focus();
+            }
                          });
       }
     }
@@ -732,7 +745,7 @@ var items = [];
                         <td><button id="b_antal2" class="antalbtn" value="10" onclick="inputAntalSet(document.getElementById('b_antal2').getAttribute('value'));addRowAndClear();">10 st</button></td>
                         <td><button id="b_antal3" class="antalbtn" value="10" onclick="inputAntalSet(document.getElementById('b_antal3').getAttribute('value'));addRowAndClear();">10 st</button></td>
                     </tr>
-                    <tr><td><button onclick="inputAntalKey('7')">7</button></td><td><button onclick="inputAntalKey('8')">8</button></td><td><button onclick="inputAntalKey('9')">9</button></td></tr>
+                    <tr><td><button onkeypress="inputKeyPress(event)" onclick="inputAntalKey('7')">7</button></td><td><button onclick="inputAntalKey('8')">8</button></td><td><button onclick="inputAntalKey('9')">9</button></td></tr>
                     <tr><td><button onclick="inputAntalKey('4')">4</button></td><td><button onclick="inputAntalKey('5')">5</button></td><td><button onclick="inputAntalKey('6')">6</button></td></tr>
                     <tr><td><button onclick="inputAntalKey('1')">1</button></td><td><button onclick="inputAntalKey('2')">2</button></td><td><button onclick="inputAntalKey('3')">3</button></td></tr>
                     <tr><td><button onclick="inputAntalKey('0')">0</button></td><td><button onclick="inputAntalClear()">Del</button></td><td></td></tr>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            :focus {
+                background-color: yellow;
+                color: red;
+            }
+        </style>
+        <script>
+
+    function keydown(event) {
+              //      document.getElementById("a").innerHTML = "down: " + event.keyCode + "<br>" + document.getElementById("a").innerHTML;
+              //      document.getElementById("a").innerHTML = "down tecken: " + String.fromCharCode(event.keyCode) + "<br>" + document.getElementById("a").innerHTML;
+            }
+            function keyup(event) {
+//                document.getElementById("a").innerHTML = "UP:" + event.keyCode + "<br>" + document.getElementById("a").innerHTML;
+                   document.getElementById("a").innerHTML = "Key:" + event.key + "<br> " + document.getElementById("a").innerHTML;
+                   document.getElementById("a").innerHTML = "Code:" + event.keyCode + " " + document.getElementById("a").innerHTML;
+                document.getElementById("a").innerHTML = "Len:" + event.key.length + " " + document.getElementById("a").innerHTML;
+            }
+        </script>
+    </head>
+    <body onkeyup="keyup(event)" >
+        <button onkeydown="Fkeydown(event)" onkeyup="Fkeyup(event)" onclick="window.focus()">kljhl</button>
+        <input id="in" style="" readonly >
+        <div id="a" ></div>
+    </body>
+</html>
