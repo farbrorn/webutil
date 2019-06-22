@@ -9,7 +9,9 @@
     var db;
     initDatabase(true);
     
-    
+    function onLoadFunction() {
+        document.getElementById("i_artnr").focus();        
+    }
     
     function initDatabase(lasInArtiklar) {
         var request = window.indexedDB.open("scanner", 1);
@@ -223,11 +225,14 @@
     
     function addRowAndClear() {
         getArtikel();
-        addOrderRad(document.getElementById("i_artnr").value, currentArtikel.namn, document.getElementById("i_antal").value, currentArtikel.enhet);
-        document.getElementById("i_artnr").value = "";
-        inputAntalClear();
-        clear_artikel();
-        document.getElementById("inputArtnrBtn").focus();
+        var antal = document.getElementById("i_antal").value;
+        if (antal > 0) {
+            addOrderRad(document.getElementById("i_artnr").value, currentArtikel.namn, document.getElementById("i_antal").value, currentArtikel.enhet);
+            document.getElementById("i_artnr").value = "";
+            inputAntalClear();
+            clear_artikel();
+            document.getElementById("i_artnr").focus();
+        }
     }
 
     function log(s) {
@@ -245,15 +250,6 @@
 //        addOrderRad(artnr, antal);
 //    }
 
-    function hideKeyboard(element) {
-        //console.log('hide');
-        element.readOnly=true;
-        setTimeout(function() {
-            //console.log('blure');
-            element.blur();
-            element.readOnly=false;
-        },100);
-    }
     
     function artnrKeyUp(event) {
         if (currentArtikel && document.getElementById("a_artnr").value!=currentArtikel.artnr) {
@@ -261,9 +257,15 @@
         }
         if (event.keyCode==13) {
             getArtikel( function() {             if (currentArtikel.artnr == document.getElementById("i_artnr").value) {
-                                                    document.getElementById("okButton").focus();
+                                                    document.getElementById("i_antal").focus();
             }
                          });
+      }
+    }
+
+    function antalKeyUp(event) {
+        if (event.keyCode==13) {
+           addRowAndClear();
       }
     }
 
@@ -315,7 +317,7 @@
                     clear_artikel();
                 }
             };
-        }
+        } else { clear_artikel(); }
 
     }
 
@@ -726,15 +728,11 @@ var items = [];
     </style>
     </head>
          
-    <body>
+    <body onload="onLoadFunction()">
         <div id="scan">
-            <div id="header">
-                <button onclick="displayDiv('meny')">Meny</button>
-                <button onclick="displayDiv('skicka')">Skicka Order</button>
-            </div>
             <div id="input-div">
                 <div style="display: inline-block; margin-right: 8px;"><div class="scan-artprompt">Artikel:</div><input id="i_artnr" onfocusout="artnrFocusOut()" onkeyup="artnrKeyUp(event)" ></div>
-                <div style="display: inline-block; margin-right: 8px;"><div class="scan-artprompt">Antal:</div><input id="i_antal"></div>
+                <div style="display: inline-block; margin-right: 8px;"><div class="scan-artprompt">Antal:</div><input id="i_antal" onkeyup="antalKeyUp(event)"></div>
             </div>
             <div style="min-height: 2em">
                 <span style="display: none" id="a_artnr"></span><span id="a_namn"></span> <span id="a_minsaljpack"></span> <span id="a_enhet"></span><span style="display: none" id="a_forpack"></span>
@@ -749,6 +747,10 @@ var items = [];
                     </tr>
                     <tr><td colspan="3"><button id="okButton" class="okButton" onclick="addRowAndClear()">OK</button></td></tr>
                 </table>
+            </div>
+            <div id="header">
+                <button onclick="displayDiv('meny')">Meny</button>
+                <button onclick="displayDiv('skicka')">Skicka Order</button>
             </div>
             <div id="artiklar">
                 <div><b>Artiklar</b></div>
