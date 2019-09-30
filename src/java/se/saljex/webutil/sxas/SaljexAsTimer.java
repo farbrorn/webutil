@@ -148,7 +148,7 @@ public class SaljexAsTimer {
 "\n" +
 "\n" +
 "delete from sxfakt.nettopri where lista='SXAS';\n" +
-"insert into sxfakt.nettopri (select 'SXAS', nummer, ROUND(CAST((inpris*(1-rab/100)*(1+inp_fraktproc/100)+inp_frakt+inp_miljo)/0.87 as numeric),2), '', current_date from sxfakt.artikel \n" +
+"insert into sxfakt.nettopri (select 'SXAS', nummer, ROUND(CAST((inpris*(1-rab/100)*(1+inp_fraktproc/100)+inp_frakt+inp_miljo)/case when nummer like 'XN*%' then 0.95 else 0.87 end as numeric),2), '', current_date from sxfakt.artikel \n" +
 "where inpris>0 \n" +
 ");\n" +
 "--uppdatera nettorpislistan till AB\n" +
