@@ -196,7 +196,7 @@ String q2 = "select cn8, sum(summa) as summa, sum(vikt) as vikt  from ( " + q + 
 <% if (!skrivInteEUUrsprung) { %>
 <div>
     <br>
-    <b>Goods are of European origin unless otherwise specified.</b>
+    <b>The exporter of the products covered by this document declares that, except where otherwise clearly indicated, these products are of EEA preferential origin</b>
 </div>
 <% } %>
 
