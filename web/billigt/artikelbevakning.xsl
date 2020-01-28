@@ -14,6 +14,9 @@
         <th>enhet</th>
         <th>inprisdatum</th>
         <th>utgattdatum</th>
+        <th>rsk</th>
+        <th>lagersaldo</th>
+        <th>maxlager</th>
         
       </tr>
       <xsl:for-each select="data/artikel">
@@ -25,6 +28,9 @@
         <td><xsl:value-of select="enhet"/></td>
         <td><xsl:value-of select="inprisdatum"/></td>
         <td><xsl:value-of select="utgattdatum"/></td>
+        <td><xsl:value-of select="rsk"/></td>
+        <td><xsl:value-of select="lagersaldo"/></td>
+        <td><xsl:value-of select="maxlager"/></td>
       </tr>
       </xsl:for-each>
     </table>

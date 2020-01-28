@@ -67,13 +67,14 @@ public class ArtikelbevakningServlet extends HttpServlet {
             try {
                 Connection con = (Connection)((ServletRequest)request).getAttribute("sxconnection");
                 String q = "select nummer, namn, round(n.pris::numeric,2) as nettopris, inpdat, coalesce(utgattdatum::varchar,'')::varchar, greatest(utgattdatum, inpdat) as andringsdatum, a.enhet " +
-                "from artikel a left outer join nettopri n on n.lista='BILLIGT' and n.artnr=a.nummer " +
-                " where greatest(utgattdatum, inpdat) is not null " +
+                " ,rsk , coalesce(l.ilager,0) as ilager, coalesce(l.maxlager,0) as maxlager "        +
+                "from artikel a left outer join nettopri n on n.lista='BILLIGT' and n.artnr=a.nummer left outer join lager l on l.lagernr=0 and l.artnr=a.nummer " +
+                "  " +
                 "order by greatest(utgattdatum, inpdat)  desc, artnr";
                 ResultSet rs  = con.createStatement().executeQuery(q);
                 if (!xml) {
                     out.print("<h1>Händelser på artikel</h1>");
-                    out.print("<p>Priser avser Billigts nettopriser. Visar händelser senaste året.</p>");
+                    out.print("<p>Priser avser Billigts nettopriser. </p>");
                     out.print("<table>");
                     out.print("<tr>");
                     out.print("<td>Händelsedatum</td>");
@@ -83,11 +84,23 @@ public class ArtikelbevakningServlet extends HttpServlet {
                     out.print("<td>Enhet</td>");
                     out.print("<td>Inprisdatum</td>");
                     out.print("<td>Utgått datum</td>");
+                    out.print("<td>RSK</td>");
+                    out.print("<td>Lagersaldo</td>");
+                    out.print("<td>Maxlager</td>");
                     out.print("</tr>");
                 }
                 while (rs.next()) {
                     if (!xml) {
-                        out.print("<tr><td>" + rs.getDate(6) +"</td><td>" + SXUtil.toHtml(rs.getString(1)) + "</td><td>" + SXUtil.toHtml(rs.getString(2)) + "</td><td>" + nf.format(rs.getDouble(3)) + "</td><td>" + SXUtil.toHtml(rs.getString("enhet")) + "</td><td>" + rs.getDate(4) + "</td><td>" + SXUtil.toHtml(rs.getString(5))  + "</td></tr>");
+                        out.print("<tr><td>" + rs.getDate(6) 
+                                +"</td><td>" + SXUtil.toHtml(rs.getString(1)) 
+                                + "</td><td>" + SXUtil.toHtml(rs.getString(2)) 
+                                + "</td><td>" + nf.format(rs.getDouble(3)) 
+                                + "</td><td>" + SXUtil.toHtml(rs.getString("enhet")) 
+                                + "</td><td>" + rs.getDate(4) 
+                                + "</td><td>" + SXUtil.toHtml(rs.getString("rsk"))  
+                                + "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("ilager"))
+                                + "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("maxlager"))
+                                + "</td></tr>");
                     } else {
                         out.print("<artikel>");
                         out.print("<handelsedatum>" + rs.getDate(6) + "</handelsedatum>");
@@ -97,6 +110,9 @@ public class ArtikelbevakningServlet extends HttpServlet {
                         out.print("<enhet>" + rs.getString("enhet") + "</enhet>");
                         out.print("<inprisdatum>" + rs.getDate(4) + "</inprisdatum>");
                         out.print("<utgattdatum>" + rs.getString(5) + "</utgattdatum>");
+                        out.print("<rsk>" + rs.getString("rsk") + "</rsk>");
+                        out.print("<ilager>" + SXUtil.getFormatNumber(rs.getDouble("ilager")) + "</ilager>");
+                        out.print("<maxlager>" + SXUtil.getFormatNumber(rs.getDouble("maxlager")) + "</maxlager>");
                         out.println("</artikel>");
                     }
                 }
