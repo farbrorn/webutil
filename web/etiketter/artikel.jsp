@@ -274,8 +274,8 @@
         
             <%@include file="/WEB-INF/sxheader.jsp" %>
             <form>
-                Offertnr: <input name="offertnr" value="<%= SXUtil.noNull(offertnr) %>">
-                Ordernr: <input name="ordernr" value="<%= SXUtil.noNull(ordernr) %>">
+                Offertnr: <input name="offertnr" value="<%= offertnr==null ? "": SXUtil.noNull(offertnr) %>">
+                Ordernr: <input name="ordernr" value="<%= ordernr==null ? "" : SXUtil.noNull(ordernr) %>">
                 <select name="typ">
                     <option value="n" <%= (typ == null || "n".equals(typ)) ? "selected" : "" %> >100x64</option>
                     <option value="s" <%= "s".equals(typ) ? "selected" : "" %> >70x30</option>
