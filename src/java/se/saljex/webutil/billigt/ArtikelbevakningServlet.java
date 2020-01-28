@@ -70,7 +70,7 @@ public class ArtikelbevakningServlet extends HttpServlet {
                 " ,rsk , coalesce(l.ilager,0) as ilager, coalesce(l.maxlager,0) as maxlager "        +
                 "from artikel a left outer join nettopri n on n.lista='BILLIGT' and n.artnr=a.nummer left outer join lager l on l.lagernr=0 and l.artnr=a.nummer " +
                 "  " +
-                "order by greatest(utgattdatum, inpdat)  desc, artnr";
+                "order by greatest(utgattdatum, inpdat)  desc, a.nummer";
                 ResultSet rs  = con.createStatement().executeQuery(q);
                 if (!xml) {
                     out.print("<h1>Händelser på artikel</h1>");
