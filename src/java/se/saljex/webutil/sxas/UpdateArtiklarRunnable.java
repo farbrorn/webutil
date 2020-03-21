@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import se.saljex.webutil.InfoException;
 
 /**
  *
@@ -22,8 +23,12 @@ import javax.sql.DataSource;
 public class UpdateArtiklarRunnable implements Runnable {
         @Override
     public void run() {
+        try { doTask(); }catch (Exception e) {}
+    }
+
+    public void doTask() throws InfoException {
         Connection con=null;
-        Logger.getLogger("sx-logger").info("sxas.UpdateArtiklarRunnable Run start");
+        Logger.getLogger("sx-logger").info("sxas.UpdateArtiklarRunnable start");
         try {
             Context initContext = new InitialContext();
             DataSource sxadm = (DataSource) initContext.lookup("sxadm");
@@ -32,15 +37,15 @@ public class UpdateArtiklarRunnable implements Runnable {
             stm.setQueryTimeout(60);
             stm.execute("select updatesxasartiklar()");
         } catch(Exception e) {
-            Logger.getLogger("sx-logger").info("sxas.UpdateArtiklarRunnable kan inte överföra lagerdsaldo: " + e.getMessage()); 
+            Logger.getLogger("sx-logger").info("sxas.UpdateArtiklarRunnable Fel:: " + e.getMessage()); 
             e.printStackTrace();
+            throw new InfoException("Fel: " + e.getMessage());
         }
         finally {
             try { con.close(); } catch (Exception e) {}
-            Logger.getLogger("sx-logger").info("sxas.UpdateArtiklarRunnable Run klar");
+            Logger.getLogger("sx-logger").info("sxas.UpdateArtiklarRunnable klar");
         }
     }
-    
     
 }
 /*

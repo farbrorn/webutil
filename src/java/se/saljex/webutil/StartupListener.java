@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.saljex.webutil.sxas;
+package se.saljex.webutil;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -12,6 +12,9 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import se.saljex.webutil.sxas.OverforLagersaldoRunnable;
+import se.saljex.webutil.sxas.UpdateArtiklarRunnable;
+import se.saljex.webutil.sxas.UpdateValutaNOKRunnable;
 
 /**
  *
@@ -25,8 +28,11 @@ public class StartupListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         Logger.getLogger("sx-logger").info("sxas.StartupListener startar timers");
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new UpdateArtiklarRunnable(), 0, 6, TimeUnit.HOURS);
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new OverforLagersaldoRunnable(), 1, 15, TimeUnit.MINUTES);
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new OverforLagersaldoRunnable(), 0, 15, TimeUnit.MINUTES);
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new UpdateValutaNOKRunnable(), 0, 12, TimeUnit.HOURS);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new se.saljex.webutil.sxas.UpdateAutonettoRunnable(), 0, 24, TimeUnit.HOURS);
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new se.saljex.webutil.UpdateAutonettoRunnable(), 0, 24, TimeUnit.HOURS);
     }
 
     @Override

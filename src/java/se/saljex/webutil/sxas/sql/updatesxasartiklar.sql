@@ -16,7 +16,7 @@ update sxasfakt.artikel set lev = 'SX', utrab = case when utrab = 40 then 45 els
 create temporary table tempvaluta on commit drop as select coalesce(kurs,0) as nok from sxfakt.valuta where valuta='NOK';
 
 update sxasfakt.artikel a set 
-utpris = (select round((utpris*case when utrab <=5 then (select 1/nok*1.1*in_prisfaktor2 from tempvaluta) else 1.1*in_prisfaktor2 end)::numeric,case when utpris > 60 then 0 else case when utpris > 20 then 1 else 2 end end) from sxfakt.artikel aa where aa.nummer=a.nummer),
+utpris = (select round((utpris*case when utrab <=5 then (select 1/nok*1.1*this_prisfaktor2 from tempvaluta) else 1.1*this_prisfaktor2 end)::numeric,case when utpris > 60 then 0 else case when utpris > 20 then 1 else 2 end end) from sxfakt.artikel aa where aa.nummer=a.nummer),
 inpris = (select round((inpris/0.95/(select nok from tempvaluta))::numeric,2) from sxfakt.artikel aa where aa.nummer=a.nummer),
 staf_pris1 = (select round((staf_pris1*case when utrab <=5 then (select 1/nok*1.1 from tempvaluta) else 1.1 end)::numeric,case when staf_pris1 > 60 then 0 else case when staf_pris1 > 20 then 1 else 2 end end) from sxfakt.artikel aa where aa.nummer=a.nummer),
 staf_pris2 = (select round((staf_pris2*case when utrab <=5 then (select 1/nok*1.1 from tempvaluta) else 1.1 end)::numeric,case when staf_pris2 > 60 then 0 else case when staf_pris2 > 20 then 1 else 2 end end) from sxfakt.artikel aa where aa.nummer=a.nummer),

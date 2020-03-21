@@ -21,6 +21,7 @@ import javax.json.JsonReader;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import se.saljex.webutil.InfoException;
 
 /**
  *
@@ -29,6 +30,10 @@ import javax.sql.DataSource;
 public class UpdateValutaNOKRunnable  implements Runnable {
         @Override
     public void run() {
+        try { doTask(); } catch (Exception e) {}
+    }
+    
+    public void doTask() throws InfoException {
         Connection con=null;
         Logger.getLogger("sx-logger").info("sxas.UpdateValutaNOKRunnable Run start");
         JsonReader jsonReader=null;
@@ -64,6 +69,7 @@ public class UpdateValutaNOKRunnable  implements Runnable {
         } catch(Exception e) {
             Logger.getLogger("sx-logger").info("sxas.UpdateValutaNOKRunnable kan intt uppdatera: " + e.getMessage()); 
             e.printStackTrace();
+            throw new InfoException("Fel: " + e.getMessage());
         }
         finally { 
             try { jsonReader.close(); } catch ( Exception e) {} 
@@ -71,5 +77,5 @@ public class UpdateValutaNOKRunnable  implements Runnable {
             try { con.close(); } catch ( Exception e) {} 
             Logger.getLogger("sx-logger").info("sxas.UpdateValutaNOKRunnable Run klar");
         }
-    }
+    }    
 }

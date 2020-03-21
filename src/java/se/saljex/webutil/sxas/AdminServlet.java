@@ -19,8 +19,6 @@ import se.saljex.sxlibrary.SXUtil;
  * @author Ulf Berg
  */
 public class AdminServlet extends HttpServlet {
-    @EJB
-    private SaljexAsTimer saljexAsTimer;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -48,15 +46,15 @@ public class AdminServlet extends HttpServlet {
             try {
                 if ("lager".equals(a)) {
                     out.print("Överför lagersaldon.....");
-                    saljexAsTimer.updateLagersaldonFrom();
+                    (new OverforLagersaldoRunnable()).doTask();
                     out.print("<b>OK</b><br>");
                 } else if ("valuta".equals(a)) {
                     out.print("Hämtar valuta NOK.....");
-                    saljexAsTimer.updateValutaNOK();
+                    (new UpdateValutaNOKRunnable()).doTask();
                     out.print("<b>OK</b><br>");
                 } else if ("artiklar".equals(a)) {
                     out.print("Överför artiklar till AS.....");
-                    saljexAsTimer.updateArtiklar();
+                    (new UpdateArtiklarRunnable()).doTask();
                     out.print("<b>OK</b><br>");
                 } else { out.print("Felaktig parameter a.");  }
                 
