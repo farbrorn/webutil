@@ -6,32 +6,31 @@
 package se.saljex.webutil.billigt;
 
 import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Date;
+import java.sql.Statement;
 import java.util.logging.Logger;
-import javax.annotation.Resource;
-import javax.ejb.Schedule;
-import javax.ejb.Stateless;
-import javax.ejb.LocalBean;
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import se.saljex.webutil.Const;
+import se.saljex.webutil.InfoException;
 
 /**
  *
  * @author ulf
  */
-@Stateless
-@LocalBean
-public class BilligtTimer {
-	@Resource(mappedName = "sxsuperuser")
-	private DataSource sxsuperuser;
+public class UpdateBilligtPriserRunnable implements Runnable {
+        @Override
+    public void run() {
+        try { doTask(); }catch (Exception e) {}
+    }
 
-    @Schedule(dayOfWeek = "Mon-Fri", month = "*", hour = "21", dayOfMonth = "*", year = "*", minute = "0", second = "0")    
-    public void uppdateraPriser() {
-        //Logger.getLogger("sx-logger").severe("SQL-Fel:" + e.getMessage()); e.printStackTrace();
-        Logger.getLogger("sx-logger").info("BilligtTimer - Uppdatera Priser - Startad");
+    public void doTask() throws InfoException {
         Connection con=null;
+        Logger.getLogger("sx-logger").info("main.UpdateBilligtPriserRunnable start");
         try {
-            con = sxsuperuser.getConnection();
+            con=Const.getSxAdmConnectionFromInitialContext();
+            Statement stm = con.createStatement();
+            stm.setQueryTimeout(60);
             String q = "delete from sxfakt.nettopri where lista='BILLIGT'; " +
 "insert into sxfakt.nettopri (select 'BILLIGT', nummer,  " +
 "ROUND	(CAST(( " +
@@ -56,25 +55,22 @@ public class BilligtTimer {
 "current_date from sxfakt.artikel  a " +
 "where inpris>0 and utpris > 0 and case when rabkod <> 'NTO' then utpris*0.6 else utpris end > (inpris*(1-rab/100)*(1+inp_fraktproc/100)+inp_frakt+inp_miljo) " +
 "and nummer not like '+%' " +
-"); " +
-"update bvfakt.artikel ba set inpdat=current_date, inpris = round(case when ba.inp_enhetsfaktor=0 then 1 else ba.inp_enhetsfaktor end * " +
-"(select si.pris from sxfakt.nettopri si where lista='BILLIGT' and si.artnr=ba.bestnr)*100)/100 " +
-"where ba.bestnr  in (select si2.artnr from sxfakt.nettopri si2 where si2.lista='BILLIGT'); ";
-
-        con.createStatement().executeUpdate(q);
-        
-        q="update sxfakt.nettopri n \n" +
+"); "+ 
+"update sxfakt.nettopri n \n" +
 "set datum=current_date, pris = coalesce((\n" +
 "select  (a.inpris*(1-a.rab/100)*(1+a.inp_fraktproc/100)+a.inp_frakt+a.inp_miljo)/(1-b.marginal/100) pris\n" +
 "from sxfakt.artikel a join sxfakt.bevisab_marginaler b on b.kod = rpad(a.rabkod,4) || rpad(coalesce(a.kod1,''),4) where a.inpris <> 0 and a.nummer=n.artnr), pris)\n" +
 "where n.lista='BILLIGT' ";
-        con.createStatement().executeUpdate(q);
-        
-        
-        } catch (SQLException e) {
-            Logger.getLogger("sx-logger").severe("SQL-Fel: vid uppdatera priser - " + e.getMessage()); e.printStackTrace();
-        } finally { try {con.close();} catch (Exception eee) {}}		
-        
+            stm.execute(q);
+        } catch(Exception e) {
+            Logger.getLogger("sx-logger").info("main.UpdateBilligtPriserRunnable Fel:: " + e.getMessage()); 
+            e.printStackTrace();
+            throw new InfoException("Fel: " + e.getMessage());
+        }
+        finally {
+            try { con.close(); } catch (Exception e) {}
+            Logger.getLogger("sx-logger").info("main.UpdateBilligtPriserRunnable klar");
+        }
     }
-
+    
 }

@@ -13,6 +13,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import se.saljex.webutil.InfoException;
 
 /**
  *
@@ -20,7 +21,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet(name = "PrisuppdateringServlet", urlPatterns = {"/billigt/prisuppdatering"})
 public class PrisuppdateringServlet extends HttpServlet {
-@EJB private BilligtTimer billigtTimer;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -43,12 +43,16 @@ public class PrisuppdateringServlet extends HttpServlet {
             out.println("</head>");
             out.println("<body>");
             out.print("Uppdaterar priser.....");
-            billigtTimer.uppdateraPriser();
-            out.print("<b>OK</b><br>");
-            
+            try {
+                (new UpdateBilligtPriserRunnable()).doTask();
+                out.print("<b>OK</b><br>");
+            }
+            catch (InfoException  e) {
+                out.print("Fel: " + e.getMessage());
+            }            
             out.println("</body>");
             out.println("</html>");
-        }
+        } 
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

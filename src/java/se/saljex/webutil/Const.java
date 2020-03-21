@@ -6,7 +6,12 @@
 package se.saljex.webutil;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.sql.DataSource;
 
 /**
  *
@@ -18,5 +23,14 @@ public class Const {
     }
     public static Connection getSuperUserConnection(HttpServletRequest request) {
         return (Connection)request.getAttribute("sxsuperuserconnection");
+    }
+    
+    public static Connection getSxAdmConnectionFromInitialContext() throws NamingException, SQLException{
+        return getConnectionFromInitialContext("sxadm");
+    }
+    
+    public static Connection getConnectionFromInitialContext(String name) throws NamingException, SQLException{
+        Context initContext = new InitialContext();
+        return ((DataSource) initContext.lookup(name)).getConnection();
     }
 }

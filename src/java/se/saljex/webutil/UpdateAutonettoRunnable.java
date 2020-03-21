@@ -27,9 +27,7 @@ public class UpdateAutonettoRunnable implements Runnable {
         Connection con=null;
         Logger.getLogger("sx-logger").info("main.UpdateAutonettoRunnable start");
         try {
-            Context initContext = new InitialContext();
-            DataSource sxadm = (DataSource) initContext.lookup("sxadm");
-            con=sxadm.getConnection();
+            con=Const.getSxAdmConnectionFromInitialContext();
             Statement stm = con.createStatement();
             stm.setQueryTimeout(60);
             stm.execute("select autonettoupdate()");

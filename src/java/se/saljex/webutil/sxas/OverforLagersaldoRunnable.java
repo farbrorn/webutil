@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import se.saljex.webutil.Const;
 import se.saljex.webutil.InfoException;
 
 /**
@@ -28,9 +29,7 @@ public class OverforLagersaldoRunnable implements Runnable {
         Connection con=null;
         Logger.getLogger("sx-logger").info("sxas.OverforLagersaldoTimer Run start");
         try {
-            Context initContext = new InitialContext();
-            DataSource sxadm = (DataSource) initContext.lookup("sxadm");
-            con=sxadm.getConnection();
+            con=Const.getSxAdmConnectionFromInitialContext();
               String q=
 "delete from sxfakt.rorder where kundnr='Y0001';\n" +
 "insert into sxfakt.rorder (kundnr, artnr, id, namn, pris, rab, rest, enh, konto, netto, marke, levnr, levdat, levbestdat, lagernr, stjid)\n" +

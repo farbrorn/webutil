@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import se.saljex.webutil.Const;
 import se.saljex.webutil.InfoException;
 
 /**
@@ -27,9 +28,7 @@ public class UpdateAutonettoRunnable implements Runnable {
         Connection con=null;
         Logger.getLogger("sx-logger").info("sxas.UpdateAutonettoRunnable start");
         try {
-            Context initContext = new InitialContext();
-            DataSource sxadm = (DataSource) initContext.lookup("sxadm");
-            con=sxadm.getConnection();
+            con=Const.getSxAdmConnectionFromInitialContext();
             Statement stm = con.createStatement();
             stm.setQueryTimeout(60);
             stm.execute("select sxasfakt.autonettoupdate()");

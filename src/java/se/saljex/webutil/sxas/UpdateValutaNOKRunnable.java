@@ -21,6 +21,7 @@ import javax.json.JsonReader;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import se.saljex.webutil.Const;
 import se.saljex.webutil.InfoException;
 
 /**
@@ -40,12 +41,9 @@ public class UpdateValutaNOKRunnable  implements Runnable {
         BufferedReader valutaReader = null;
         
         try {
-            Context initContext = new InitialContext();
-            DataSource sxadm = (DataSource) initContext.lookup("sxadm");
-            con=sxadm.getConnection();
+            con=Const.getSxAdmConnectionFromInitialContext();
             Statement stm = con.createStatement();
             stm.setQueryTimeout(60);
-            con = sxadm.getConnection();
             URL valutaURL=new URL("https://free.currencyconverterapi.com/api/v5/convert?q=NOK_SEK&compact=y&apiKey=651acd318db35d2790b9");
             valutaReader = new BufferedReader(new InputStreamReader(valutaURL.openStream()));
             jsonReader = Json.createReader(valutaReader);
@@ -54,8 +52,6 @@ public class UpdateValutaNOKRunnable  implements Runnable {
             Double dagensValuta = jsonObject.getJsonObject("NOK_SEK").getJsonNumber("val").doubleValue();
             
             
-            stm = con.createStatement();
-            stm.setQueryTimeout(60);
             ResultSet rs = stm.executeQuery("select kurs from sxfakt.valuta where valuta='NOK'");
             if (!rs.next()) throw new SQLException("Kan inte hitta valuta NOK i valutatabellen");
             Double sqlValuta = rs.getDouble(1);

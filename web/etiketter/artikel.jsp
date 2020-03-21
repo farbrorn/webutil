@@ -168,7 +168,7 @@
             .logo-s {
                 height: 25mm;
                 width: 10mm;
-                //float: left;
+                /*float: left; */
                 left: 2mm;
                 top: 1mm;
                 position: absolute;
