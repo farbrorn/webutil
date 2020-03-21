@@ -119,7 +119,7 @@ h2 {
     ResultSet rsO1 = stm.executeQuery("select o1.*, s.tel, s.epost from " + dbPrefix + "order1 o1 left outer join " + dbPrefix + "saljare s on s.namn=o1.saljare where ordernr=" + ordernr);
     if (rsO1.next()) {
 %>
-<div id="offer" style="width: 54em; padding: 1em; margin:0.5em; border: 1px solid grey; font-size: 12px">                
+<div id="offer" style="width: 720px; padding: 4px; margin:2px; border: 1px solid grey; font-size: 12px">                
 <div id="offer-header" style="width: 100%">
 
     <table style="width: 100%">
@@ -173,8 +173,8 @@ h2 {
 
          ResultSet rsO2 = stm.executeQuery("select o2.*, case when coalesce(a.bildartnr,'')='' then a.nummer else bildartnr end as bildnr  from " + dbPrefix + "order2 o2 left outer join " + dbPrefix + "artikel a on a.nummer=o2.artnr where ordernr=" + ordernr + " order by pos"); %>
 
-<table style="margin-top: 2em; width: 100%; border-top: 1px solid black; border-bottom: 1px solid black; padding-top: 2px; padding-bottom: 2px;">
-    <tr><th style="width: 60px;"></th><th style="width: 8em"><%= t.t("Artikelnr") %></th><th style="width: 16em"><%= t.t("Benämning") %></th><th style="width: 7em; text-align: right;"><%= t.t("Antal") %></th><th></th><th style="text-align: right;"><%= t.t("Pris") %></th><th>%</th><th style="text-align: right; width: 5em;"><%= t.t("Lev.dat") %></th></tr>
+<table style="margin-top: 12px; width: 100%; border-top: 1px solid black; border-bottom: 1px solid black; padding-top: 2px; padding-bottom: 2px;">
+    <tr><th style="width: 60px;"></th><th style="width: 98px"><%= t.t("Artikelnr") %></th><th style="width: 218px"><%= t.t("Benämning") %></th><th style="width: 86px; text-align: right;"><%= t.t("Antal") %></th><th style="width: 40px"></th><th style="text-align: right; width: 62px"><%= t.t("Pris") %></th><th style="width: 62px; padding-left: 4px">%</th><th style="text-align: right; width: 62px;"><%= t.t("Lev.dat") %></th></tr>
 
 <%        
     while (rsO2.next()) {
@@ -192,7 +192,7 @@ h2 {
             <td style="text-align: right; width: 7em"><%= rsO2.getDouble("best") % 1 == 0 ? nf0.format(rsO2.getDouble("best")) : nf2.format(rsO2.getDouble("best")) %></td>
             <td><%= SXUtil.toHtml(rsO2.getString("enh")) %></td>
             <td style="text-align: right"><%= nf2.format(rsO2.getDouble("pris")) %></td>
-            <td style=""><%= rsO2.getDouble("rab") == 0 ? "" : nf0.format(rsO2.getDouble("rab")) %></td>
+            <td style="padding-left: 4px"><%= rsO2.getDouble("rab") == 0 ? "" : nf0.format(rsO2.getDouble("rab")) %></td>
             <td  style="text-align: right"><%= rsO2.getDate("levdat")!=null ? dateFormatter.format(rsO2.getDate("levdat")) : "" %></td>
         </tr>
     <% } %>

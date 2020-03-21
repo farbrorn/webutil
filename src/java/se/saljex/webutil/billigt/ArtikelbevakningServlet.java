@@ -67,7 +67,7 @@ public class ArtikelbevakningServlet extends HttpServlet {
             try {
                 Connection con = (Connection)((ServletRequest)request).getAttribute("sxconnection");
                 String q = "select nummer, namn, round(n.pris::numeric,2) as nettopris, inpdat, coalesce(utgattdatum::varchar,'')::varchar, greatest(utgattdatum, inpdat) as andringsdatum, a.enhet " +
-                " ,rsk , coalesce(l.ilager,0) as ilager, coalesce(l.maxlager,0) as maxlager "        +
+                " ,rsk , coalesce(l.ilager,0) as ilager, coalesce(l.maxlager,0) as maxlager, utgattdatum "        +
                 "from artikel a left outer join nettopri n on n.lista='BILLIGT' and n.artnr=a.nummer left outer join lager l on l.lagernr=0 and l.artnr=a.nummer " +
                 "  " +
                 "order by greatest(utgattdatum, inpdat)  desc, a.nummer";
@@ -97,9 +97,10 @@ public class ArtikelbevakningServlet extends HttpServlet {
                                 + "</td><td>" + nf.format(rs.getDouble(3)) 
                                 + "</td><td>" + SXUtil.toHtml(rs.getString("enhet")) 
                                 + "</td><td>" + rs.getDate(4) 
+                                + "</td><td>" + rs.getDate("utgattdatum") 
                                 + "</td><td>" + SXUtil.toHtml(rs.getString("rsk"))  
-                                + "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("ilager"))
-                                + "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("maxlager"))
+                                + "</td><td>" + nf.format(rs.getDouble("ilager"))
+                                + "</td><td>" + nf.format(rs.getDouble("maxlager"))
                                 + "</td></tr>");
                     } else {
                         out.print("<artikel>");
@@ -109,10 +110,10 @@ public class ArtikelbevakningServlet extends HttpServlet {
                         out.print("<nettopris>" + rs.getDouble(3) + "</nettopris>");
                         out.print("<enhet>" + rs.getString("enhet") + "</enhet>");
                         out.print("<inprisdatum>" + rs.getDate(4) + "</inprisdatum>");
-                        out.print("<utgattdatum>" + rs.getString(5) + "</utgattdatum>");
+                        out.print("<utgattdatum>" + rs.getDate("utgattdatum") + "</utgattdatum>");
                         out.print("<rsk>" + rs.getString("rsk") + "</rsk>");
-                        out.print("<ilager>" + SXUtil.getFormatNumber(rs.getDouble("ilager")) + "</ilager>");
-                        out.print("<maxlager>" + SXUtil.getFormatNumber(rs.getDouble("maxlager")) + "</maxlager>");
+                        out.print("<ilager>" + nf.format(rs.getDouble("ilager")) + "</ilager>");
+                        out.print("<maxlager>" + nf.format(rs.getDouble("maxlager")) + "</maxlager>");
                         out.println("</artikel>");
                     }
                 }
