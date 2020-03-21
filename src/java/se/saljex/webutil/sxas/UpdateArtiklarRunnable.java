@@ -30,7 +30,7 @@ public class UpdateArtiklarRunnable implements Runnable {
             con=sxadm.getConnection();
             Statement stm = con.createStatement();
             stm.setQueryTimeout(60);
-            stm.executeUpdate("select updatesxasartiklar()");
+            stm.execute("select updatesxasartiklar()");
         } catch(Exception e) {
             Logger.getLogger("sx-logger").info("sxas.UpdateArtiklarRunnable kan inte överföra lagerdsaldo: " + e.getMessage()); 
             e.printStackTrace();

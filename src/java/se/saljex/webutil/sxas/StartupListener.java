@@ -26,6 +26,7 @@ public class StartupListener implements ServletContextListener {
         Logger.getLogger("sx-logger").info("sxas.StartupListener startar timers");
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new UpdateArtiklarRunnable(), 0, 6, TimeUnit.HOURS);
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new OverforLagersaldoRunnable(), 1, 15, TimeUnit.MINUTES);
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new UpdateValutaNOKRunnable(), 0, 12, TimeUnit.HOURS);
     }
 
     @Override
