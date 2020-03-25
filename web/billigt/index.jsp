@@ -17,6 +17,7 @@
         <a href="artikelbevakning?export=xml">Artikelbevakning med priser i XML-format</a><br>
         <a href="utleveranser">Visa utleveranser</a><br>
         <a href="prisuppdatering">Uppdatera priser</a><br>
+        <a href="aktuellaorder.jsp">Visa aktuella ordrar</a><br>
         
     </body>
 </html>
