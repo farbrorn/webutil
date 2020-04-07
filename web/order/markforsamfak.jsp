@@ -21,8 +21,8 @@ String q  = "select *, "
         "select o1.wmsordernr, o1.datum, O1.TIDIGASTFAKTDATUM, O1.ORDERMEDDELANDE, o1.status, o1.namn, o1.marke, o1.fraktbolag, o1.fraktfrigrans, o2.pos, o2.artnr, o2.namn as artnamn, o2.best, o2.enh, o2.pris, o2.rab, o2.text, o2.netto, o2.stjid,\n" +
 "case when o2.best > 0 and coalesce(o2.pris,0)=0 and o2.artnr not like '*UD%' and o2.artnr is not null and trim(o2.artnr) <> '' then 'Priset är 0:-. ' else '' end ||\n" +
 "case when o2.best>0 and o2.artnr is not null and o2.artnr not like '*UD%' and trim(o2.artnr) <> '' and o2.pris * (1-o2.rab/100) < o2.netto then 'Försäljningspriset är mindre än inköpspriset. ' else '' end as radvarning,\n" +
-"CASE when upper(o1.fraktbolag) not in ('TURBIL', 'HÄMTAS', 'HOT PICK')  then\n" +
-"    case when sum(o2.summa) over (partition by o2.wmsordernr) < o1.fraktfrigrans and sum(case when upper(o2.namn) like 'FRAKT%' then o2.summa else 0 end) over (partition by o2.wmsordernr) <= 0   then\n" +
+"CASE when upper(o1.fraktbolag) not in ('TURBIL', 'HÄMTAS', 'HOT PICK') and not (coalesce(o1.fraktbolag,'')='' and coalesce(o1.linjenr1,'')='' and coalesce(o1.linjenr2,'')='' and coalesce(o1.linjenr3,'')='')  then\n" +
+"    case when sum(case when o2.summa > 0 then o2.summa else 0 end) over (partition by o2.wmsordernr) < o1.fraktfrigrans and sum(case when upper(o2.namn) like 'FRAKT%' then o2.summa else 0 end) over (partition by o2.wmsordernr) <= 0   then\n" +
 "        'Ordern når inte upp till fraktfritt. '\n" +
 "    else\n" +
 "        case when sum(case when a.fraktvillkor > 0 then 1 else 0 end) over (partition by o2.wmsordernr) > 0 and sum(case when upper(o2.namn) like 'FRAKT%' then o2.summa else 0 end) over (partition by o2.wmsordernr) <= 0 then\n" +
@@ -36,7 +36,7 @@ String q  = "select *, "
 " || case when current_date < TIDIGASTFAKTDATUM then ' Order skall faktureras efter ' || TIDIGASTFAKTDATUM || ' ' else '' end "+
 "as ordervarning\n" +
 "\n" +
-"from wmsorder1 o1 join wmsorder2 o2 on o1.wmsordernr=o1.wmsordernr and o1.orgordernr=o2.orgordernr\n" +
+"from wmsorder1 o1 join wmsorder2 o2 on o1.wmsordernr=o2.wmsordernr and o1.orgordernr=o2.orgordernr\n" +
 "join \n" +
 "(\n" +
 "select 'AB' as wmsprefix, * from sxfakt.kund\n" +
@@ -52,7 +52,7 @@ String q  = "select *, "
 "select 'AS' as wmsprefix, ordernr, max(case when handelse = 'WMS' then serverdatum else null end) as wmsdatum, max(case when handelse = 'WMS Plockad' then serverdatum else null end) as wmsplockaddatum, max(case when handelse = 'WMS Lastad' then serverdatum else null end) as wmslastaddatum \n" +
 "from sxasfakt.orderhand group by ordernr\n" +
 ") hh on hh.wmsprefix=substring(o1.wmsordernr, 1,2) and hh.ordernr=o1.orgordernr\n" +
-"where o1.status in ('Klar', 'Samfak') and o1.lagernr=" + lagernr + " ) o order by wmsordernr" ;
+"where o1.status in ('Klar', 'Samfak') and o1.lagernr=" + lagernr + " ) o order by wmsordernr, pos" ;
 
 ps = con.prepareStatement(q);
 ResultSet rs = ps.executeQuery();
