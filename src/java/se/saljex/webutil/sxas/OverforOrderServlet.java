@@ -59,6 +59,9 @@ public class OverforOrderServlet extends HttpServlet {
         }
         StringBuilder sb = new StringBuilder();
         boolean overforError=false;
+        int antalKolli = 0;
+        int viktKg = 0;
+        
             if (acIsOverfor && orderLista!=null && orderLista.size() > 0) {
                 try {
                     con.setAutoCommit(false);
@@ -69,13 +72,21 @@ public class OverforOrderServlet extends HttpServlet {
                     statement.executeUpdate("create temporary table orderrader (artnr varchar, lev real, pos serial) on commit drop");
                     PreparedStatement orderraderStatement = con.prepareStatement("insert into orderrader (artnr, lev) values (?,?)");
                     orderraderStatement.setQueryTimeout(60);
-                    PreparedStatement ps = con.prepareStatement("select o1.ordernr, o1.namn as kundnamn, o2.artnr, o2.namn as artnamn, o2.lev, o2.netto, o2.enh, a.nummer as a_nummer  from sxasfakt.order1 o1 join sxasfakt.order2 o2 on o1.ordernr=o2.ordernr left outer join sxfakt.artikel a on a.nummer=o2.artnr where o2.artnr is not null and o2.artnr <> '' and o2.lev<>0 and status='Samfak' and o1.ordernr=?");
+                    PreparedStatement ps = con.prepareStatement("select o1.ordernr, o1.namn as kundnamn, o2.artnr, o2.namn as artnamn, o2.lev, o2.netto, o2.enh, a.nummer as a_nummer, kol.antalkolli, kol.viktkg "
+                            + " from sxasfakt.order1 o1 "
+                            + " join sxasfakt.order2 o2 on o1.ordernr=o2.ordernr "
+                            + " left outer join sxfakt.artikel a on a.nummer=o2.artnr "
+                            + " (select wmsordernr, count(*) antalkolli, sum(viktkg) as viktkg from wmskollin group by wmsordernr) kol on kol.wmsordernr= 'AS-' || o1.ordernr"
+                            + " where o2.artnr is not null and o2.artnr <> '' and o2.lev<>0 and status='Samfak' and o1.ordernr=?");
                     ps.setQueryTimeout(60);
+                           
                     for (Integer o : orderLista) {
                         ps.setInt(1, o);
                         ResultSet rs = ps.executeQuery();
                         boolean isOnOrdernr=false;
                         boolean isErrorOnOrder = false;
+                        antalKolli += rs.getInt("antalkolli");
+                        viktKg += rs.getInt("viktkg");
                         
                         while(rs.next()) {
                             isOnOrdernr=true;
@@ -137,7 +148,7 @@ public class OverforOrderServlet extends HttpServlet {
                                     " ;"
                             ) <1) throw new SQLException("Kan inte skapa sxfakt.offert2 (offertnr " + offertnr + ")");
                             if (statement.executeUpdate(
-                                    "update sxfakt.offert2 set summa=round((pris*lev)::numeric,2) where offertnr=(select kon.offertnr from kon);"
+                                    "update sxfakt.offert2 set summa=round((ROUND(pris::NUMERIC,2)*lev)::numeric,2) where offertnr=(select kon.offertnr from kon);"
                             ) <1) throw new SQLException("Kan inte uppdatera radsummor för sxfakt.offert2 (offertnr " + offertnr + ")");
                             
                             
@@ -168,6 +179,10 @@ public class OverforOrderServlet extends HttpServlet {
             out.println("<title>Överför order</title>");            
             out.println("</head>");
             out.println("<body>");
+            if (antalKolli>0) {
+                out.print("Antal kolli: " + antalKolli + "<br>");
+                out.print("Total vikt: " + viktKg + "<br>");
+            }
 
             request.getRequestDispatcher("/WEB-INF/saljexas/overfor/index.jsp").include(request, response);				
  

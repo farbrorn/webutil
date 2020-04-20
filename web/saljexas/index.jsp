@@ -19,5 +19,6 @@
         <p><a href="admin?a=lager">Överför lagersaldon till AB</a></p>
         <p><a href="admin?a=valuta">Hämta dagens NOK valutakurs</a></p>
         <p><a href="admin?a=artiklar">Uppdatera artiklar i AS</a></p>
+        <p><a href="orderbevakning.jsp">Orderbevakning</a></p>
     </body>
 </html>
