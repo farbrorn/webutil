@@ -35,6 +35,10 @@ public class ManiFilter extends se.saljex.loginservice.LoginServiceFilter {
 	private DataSource sxadm;
 	@Resource(mappedName = "sxsuperuser")
 	private DataSource sxsuperuser;
+	@Resource(mappedName = "webse")
+	private DataSource webse;
+	@Resource(mappedName = "webno")
+	private DataSource webno;
         @EJB
         private LoginServiceBeanRemote loginServiceBeanRemote;
     
@@ -48,15 +52,21 @@ public class ManiFilter extends se.saljex.loginservice.LoginServiceFilter {
             throws IOException, ServletException {
 		Connection con=null;
 		Connection con2=null;
+		Connection con3=null;
+		Connection con4=null;
 		try {
 			con = sxadm.getConnection();
 			request.setAttribute("sxconnection", con); 
 			con2 = sxsuperuser.getConnection();
 			request.setAttribute("sxsuperuserconnection", con2);                       
+			con3 = webse.getConnection();
+			request.setAttribute("webseconnection", con2);                       
+			con4 = webno.getConnection();
+			request.setAttribute("webnoconnection", con2);                       
  			super.doFilter(request,response,chain);
 		} catch (SQLException e) {
 			Logger.getLogger("sx-logger").severe("SQL-Fel:" + e.getMessage()); e.printStackTrace();
-		} finally { try {con.close(); con2.close();} catch (Exception eee) {}}		
+		} finally { try {con.close(); con2.close(); con3.close(); con4.close();} catch (Exception eee) {}}		
     }
 
 

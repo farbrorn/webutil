@@ -18,6 +18,7 @@
         <a href="utleveranser">Visa utleveranser</a><br>
         <a href="prisuppdatering">Uppdatera priser</a><br>
         <a href="aktuellaorder.jsp">Visa aktuella ordrar</a><br>
+        <a href="slappordertillplock.jsp">Släpp order till plock</a><br>
         
     </body>
 </html>

@@ -14,10 +14,13 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.security.RunAs;
 import javax.ejb.EJB;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -99,7 +102,13 @@ public static final String importOkURL = "https://billigtvvs.se/butikadmin/order
                    } 
                     out.print("<div><h2>Svar från fjärrserver<h2>");
                     URL okURL = new URL(importOkURL);
-                    BufferedReader okIn = new BufferedReader(new InputStreamReader(okURL.openStream()));
+                    
+                    SSLContext ssl = SSLContext.getInstance("TLSv1.2");             
+                    ssl.init(null, null, new SecureRandom());
+                    HttpsURLConnection connection = (HttpsURLConnection) okURL.openConnection();
+                    connection.setSSLSocketFactory(ssl.getSocketFactory());
+                    
+                    BufferedReader okIn = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String okInput;
                     while ((okInput = okIn.readLine()) != null) out.print(okInput);
                     okIn.close();

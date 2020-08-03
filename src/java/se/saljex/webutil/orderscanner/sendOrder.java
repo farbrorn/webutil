@@ -128,8 +128,8 @@ public class sendOrder extends HttpServlet {
 */
 
                         if (statement.executeUpdate(
-                                "insert into sxasfakt.order1 (ordernr, dellev, status, namn, adr1, adr2, adr3, levadr1, levadr2, levadr3, saljare, referens, kundnr, marke, datum, moms, ktid, bonus, faktor, mottagarfrakt,  fraktfrigrans, lagernr) " +
-                                " select kon.ordernr,1, 'Avvakt', k.namn, k.adr1, k.adr2, k.adr3, k.lnamn, k.ladr2, k.ladr3, k.saljare, k.ref, k.nummer, kon.marke, current_date, 0, k.ktid, k.bonus, k.faktor, k.mottagarfrakt, k.fraktfrigrans, 0 " +
+                                "insert into sxasfakt.order1 (ordernr, dellev, status, namn, adr1, adr2, adr3, levadr1, levadr2, levadr3, saljare, referens, kundnr, marke, datum, moms, ktid, bonus, faktor, mottagarfrakt,  fraktfrigrans, lagernr, fraktbolag, linjenr1, linjenr2, linjenr3) " +
+                                " select kon.ordernr,1, 'Avvakt', k.namn, k.adr1, k.adr2, k.adr3, k.lnamn, k.ladr2, k.ladr3, k.saljare, k.ref, k.nummer, kon.marke, current_date, 0, k.ktid, k.bonus, k.faktor, k.mottagarfrakt, k.fraktfrigrans, 0 , fraktbolag, linjenr1, linjenr2, linjenr3" +
                                 " from sxasfakt.kund k join kon on kon.kundnr=k.nummer; " 
                         ) <1) throw new SQLException("Kan inte skapa sxasfakt.order1 (ordernr " + ordernr + ")");
                         if (statement.executeUpdate(
@@ -146,7 +146,7 @@ public class sendOrder extends HttpServlet {
                         ) <1) throw new SQLException("Kan inte skapa sxasfakt.order2 (offertnr " + ordernr + ")");
 
                         if (statement.executeUpdate(
-                                "update sxasfakt.order2 set summa=round((pris*lev*(1-rab/100))::numeric,2) where ordernr=(select kon.ordernr from kon);"
+                                "update sxasfakt.order2 set summa=round((round((pris*(1-rab/100))::numeric,2)*lev)::numeric,2) where ordernr=(select kon.ordernr from kon);"
                         ) <1) throw new SQLException("Kan inte uppdatera radsummor för sxasfakt.order2 (ordernr " + ordernr + ")");
 
                         if (statement.executeUpdate(

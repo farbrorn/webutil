@@ -8,6 +8,9 @@ package se.saljex.webutil.billigt;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -35,7 +38,7 @@ public class OverforXMLParser {
         } catch (Exception e) {return "";}
     }
     
-    public static ArrayList<OrderImport> parseXMLFromURL(String urlString) throws MalformedURLException, IOException, SAXException, ParserConfigurationException {
+    public static ArrayList<OrderImport> parseXMLFromURL(String urlString) throws MalformedURLException, IOException, SAXException, ParserConfigurationException, NoSuchAlgorithmException, KeyManagementException {
             OverforXMLParser.litaPaAllaSSLCertifikat();
             URL url = new URL(urlString);
             
@@ -43,7 +46,13 @@ public class OverforXMLParser {
             
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(url.openStream());
+            SSLContext ssl = SSLContext.getInstance("TLSv1.2");             
+            ssl.init(null, null, new SecureRandom());
+            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection.setSSLSocketFactory(ssl.getSocketFactory());
+            
+            
+            Document doc = dBuilder.parse(connection.getInputStream());
             doc.getDocumentElement().normalize();
 
             // Hämta lista på alla order och loopa igenom

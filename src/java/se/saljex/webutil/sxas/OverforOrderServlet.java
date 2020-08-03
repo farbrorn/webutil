@@ -76,7 +76,7 @@ public class OverforOrderServlet extends HttpServlet {
                             + " from sxasfakt.order1 o1 "
                             + " join sxasfakt.order2 o2 on o1.ordernr=o2.ordernr "
                             + " left outer join sxfakt.artikel a on a.nummer=o2.artnr "
-                            + " (select wmsordernr, count(*) antalkolli, sum(viktkg) as viktkg from wmskollin group by wmsordernr) kol on kol.wmsordernr= 'AS-' || o1.ordernr"
+                            + " left outer join (select wmsordernr, count(*) as antalkolli, sum(viktkg) as viktkg from sxfakt.wmskollin group by wmsordernr) kol on kol.wmsordernr= 'AS-' || o1.ordernr"
                             + " where o2.artnr is not null and o2.artnr <> '' and o2.lev<>0 and status='Samfak' and o1.ordernr=?");
                     ps.setQueryTimeout(60);
                            
@@ -85,10 +85,14 @@ public class OverforOrderServlet extends HttpServlet {
                         ResultSet rs = ps.executeQuery();
                         boolean isOnOrdernr=false;
                         boolean isErrorOnOrder = false;
-                        antalKolli += rs.getInt("antalkolli");
-                        viktKg += rs.getInt("viktkg");
+                        Integer tempOrdernr = null;
                         
                         while(rs.next()) {
+                            if (tempOrdernr == null || !tempOrdernr.equals(rs.getInt("ordernr"))) {
+                                antalKolli += rs.getInt("antalkolli");
+                                viktKg += rs.getInt("viktkg");
+                                tempOrdernr = rs.getInt("ordernr");
+                            }
                             isOnOrdernr=true;
                             orderraderStatement.setString(1, rs.getString("artnr"));
                             orderraderStatement.setDouble(2, rs.getDouble("lev"));
