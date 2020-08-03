@@ -5,4 +5,5 @@
     <role-name>admin</role-name>
     <principal-name>admin</principal-name>
   </security-role-mapping>
+  <property name="alternatedocroot_1" value="from=/jspscript/* dir=/root/Dropbox/apps/webutil"/>
 </sun-web-app>
