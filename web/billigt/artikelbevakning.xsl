@@ -29,7 +29,7 @@
         <td><xsl:value-of select="inprisdatum"/></td>
         <td><xsl:value-of select="utgattdatum"/></td>
         <td><xsl:value-of select="rsk"/></td>
-        <td><xsl:value-of select="lagersaldo"/></td>
+        <td><xsl:value-of select="ilager"/></td>
         <td><xsl:value-of select="maxlager"/></td>
       </tr>
       </xsl:for-each>
