@@ -18,11 +18,15 @@
     Statement stm;
     stm = con.createStatement();
     ResultSet rs = stm.executeQuery("SELECT o1.ordernr, o1.datum, o1.status, o1.kundnr, o1.namn as kundnamn, o1.levadr1, o1.levadr2, o1.levadr3, o1.marke, oh.wmsdatum as wmsdatum, oh.wmsplockdatum as wmsplockdatum, oh.skapaddatum, \n" +
-"o2.artnr, o2.namn as artnamn, o2.lev, o2.enh, wop.ilager, wop.best, wop.bekraftat, wop.best-wop.bekraftat as avvikelse, wop.crts as radplockaddatum,\n" +
-"case when wop.best > 0 and wop.bekraftat < wop.best then case when ilager > bekraftat then '* * * Varning: Restnoterat men fanns i lager vid plocktillfälle. * * *' else 'Varning: Restnoterat' end else null end as varning\n" +
+"o2.artnr, o2.namn as artnamn, o2.lev, o2.enh, l.ilager, o2.best, wop.bekraftat, o2.best-wop.bekraftat as avvikelse, wop.crts as radplockaddatum,\n" +
+"case when o2.best > 0 and wop.bekraftat < o2.best then case when ilager > bekraftat then '* * * Varning: Restnoterat men fanns i lager vid plocktillfälle. * * *' else 'Varning: Restnoterat' end else null end as varning\n" +
 "FROM SXASFAKT.ORDER1 o1 left outer join sxasfakt.order2 o2 on o1.ordernr=o2.ordernr\n" +
-"LEFT OUTER JOIN WMSORDERPLOCK WOP  on wmsordernr2int(wmsordernr) = o1.ordernr and wop.wmsordernr like 'AS-%' and wop.pos=o2.pos and wop.artnr=o2.artnr\n" +
-"left outer join (\n" +
+"left outer join (select masterordername as wmsordernr, hostidentification::smallint as pos, materialname as artnr , sum(quantityconfirmed::numeric) as bekraftat, max(creationdate) as crts  " +
+"from ppgorderpick group by masterordername, materialname, hostidentification ) wop " +
+" on wmsordernr2int(wmsordernr) = o1.ordernr and wop.wmsordernr like 'AS-%' and wop.pos=o2.pos and wop.artnr=o2.artnr " +            
+//"LEFT OUTER JOIN WMSORDERPLOCK WOP  on wmsordernr2int(wmsordernr) = o1.ordernr and wop.wmsordernr like 'AS-%' and wop.pos=o2.pos and wop.artnr=o2.artnr\n" +
+" left outer join lager l on l.lagernr=o1.lagernr and l.artnr=o2.artnr " +
+" left outer join (\n" +
 "	select ordernr, \n" +
 "	max( case when handelse = 'WMS' then serverdatum else null end) as wmsdatum,\n" +
 "	max(case when handelse = 'WMS Plockad' then serverdatum else null end) as wmsplockdatum, \n" +
