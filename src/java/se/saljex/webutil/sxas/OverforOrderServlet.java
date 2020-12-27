@@ -8,6 +8,7 @@ package se.saljex.webutil.sxas;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ConnectException;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -58,11 +59,34 @@ public class OverforOrderServlet extends HttpServlet {
             }
         }
         StringBuilder sb = new StringBuilder();
-        boolean overforError=false;
         int antalKolli = 0;
         int viktKg = 0;
+        int offertnr=0;
+        PreparedStatement ps;
+        ResultSet rs;
         
             if (acIsOverfor && orderLista!=null && orderLista.size() > 0) {
+                try {
+                    ps=con.prepareStatement("select * from sxasOverforOrder2Offert(?)");
+                    Array sqlOrderArr = con.createArrayOf("integer", orderLista.toArray());
+                    ps.setArray(1, sqlOrderArr);
+                    rs = ps.executeQuery();
+                    if (rs.next()) {
+                        antalKolli = rs.getInt("out_antalkolli");
+                        viktKg = rs.getInt("out_viktkg");
+                        offertnr = rs.getInt("out_offertnr");
+                    }
+                    sb.append("Offert " + offertnr + " sparad ok!<br>");
+                    
+                } catch (SQLException e) {
+                    request.setAttribute("errtext", "SQL-Fel: " + e.toString() + e.getMessage());
+                    sb = new StringBuilder(); //Töm så inte delar av processen visas som ok
+                }
+
+                
+            }
+                
+                /*
                 try {
                     con.setAutoCommit(false);
 //                    con.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
@@ -172,7 +196,7 @@ public class OverforOrderServlet extends HttpServlet {
                    try { con.setAutoCommit(true); }catch (SQLException se) {}
                    
                 }
-            }
+            } */
         request.setAttribute("infotext", sb.toString());
         
         try (PrintWriter out = response.getWriter()) {
