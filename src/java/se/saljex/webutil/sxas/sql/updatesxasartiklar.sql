@@ -1,3 +1,5 @@
+*** Utgår - flyttat till separat SQL-pprojhekt ***
+
 create or replace function updatesxasartiklar(in_prisfaktor2 real default 0)     
   RETURNS void AS
 $BODY$

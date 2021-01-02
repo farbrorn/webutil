@@ -19,6 +19,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import se.saljex.sxlibrary.SXUtil;
 import se.saljex.webutil.Const;
 
 /**
@@ -44,7 +45,7 @@ public class OverforOrderServlet extends HttpServlet {
         ArrayList<Integer> orderLista = new ArrayList<>();
         boolean splitError = false;
         boolean acIsOverfor = "overfor".equals(ac);
-        Connection con = Const.getSuperUserConnection(request);
+        Connection con = Const.getConnection(request);
         
         if (orderlistParameter!=null) {
             try {
@@ -58,33 +59,12 @@ public class OverforOrderServlet extends HttpServlet {
                 request.setAttribute("errtext", "Formatfel i orderlistan.");
             }
         }
-        StringBuilder sb = new StringBuilder();
         int antalKolli = 0;
         int viktKg = 0;
         int offertnr=0;
         PreparedStatement ps;
         ResultSet rs;
         
-            if (acIsOverfor && orderLista!=null && orderLista.size() > 0) {
-                try {
-                    ps=con.prepareStatement("select * from sxasOverforOrder2Offert(?)");
-                    Array sqlOrderArr = con.createArrayOf("integer", orderLista.toArray());
-                    ps.setArray(1, sqlOrderArr);
-                    rs = ps.executeQuery();
-                    if (rs.next()) {
-                        antalKolli = rs.getInt("out_antalkolli");
-                        viktKg = rs.getInt("out_viktkg");
-                        offertnr = rs.getInt("out_offertnr");
-                    }
-                    sb.append("Offert " + offertnr + " sparad ok!<br>");
-                    
-                } catch (SQLException e) {
-                    request.setAttribute("errtext", "SQL-Fel: " + e.toString() + e.getMessage());
-                    sb = new StringBuilder(); //Töm så inte delar av processen visas som ok
-                }
-
-                
-            }
                 
                 /*
                 try {
@@ -197,21 +177,69 @@ public class OverforOrderServlet extends HttpServlet {
                    
                 }
             } */
-        request.setAttribute("infotext", sb.toString());
+//        request.setAttribute("infotext", sb.toString());
         
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
+          /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
             out.println("<title>Överför order</title>");            
             out.println("</head>");
             out.println("<body>");
-            if (antalKolli>0) {
-                out.print("Antal kolli: " + antalKolli + "<br>");
-                out.print("Total vikt: " + viktKg + "<br>");
-            }
+            
+            try {
+                if (acIsOverfor && orderLista!=null && orderLista.size() > 0) {
+                    ps=con.prepareStatement("select * from sxasOverforOrder2Offert(?)");
+                    Array sqlOrderArr = con.createArrayOf("integer", orderLista.toArray());
+                    ps.setArray(1, sqlOrderArr);
+                    rs = ps.executeQuery();
+                    if (rs.next()) {
+                        antalKolli = rs.getInt("out_antalkolli");
+                        viktKg = rs.getInt("out_viktkg");
+                        offertnr = rs.getInt("out_offertnr");
+            
+                        ps=con.prepareStatement("select artnr, namn, lev, pris, rab, summa, sum(round(summa::numeric,2)) over () as totalsumma  from offert2 where offertnr=? order by pos");
+                        ps.setInt(1, offertnr);
+                        rs=ps.executeQuery();
+                        
+                        out.print("<h4>Offert " + offertnr + " sparad OK.</h4>");
+                        out.print("<table><tr><td>Art.nr</td><td>Benämning</td><td>Antal</td><td>Pris</td><td>%</td><td>Summa</td></tr>");
+                        double totalsumma=0;
+                        while (rs.next()) {
+                            totalsumma = rs.getDouble("totalsumma");
+                            out.print("<tr><td>" + SXUtil.toHtml(rs.getString("artnr")) +
+                                        "</td><td>" + SXUtil.toHtml(rs.getString("namn")) + 
+                                        "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("lev")) +
+                                        "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("pris")) +
+                                        "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("rab")) +
+                                        "</td><td>" + SXUtil.getFormatNumber(rs.getDouble("summa")) +
+                                        "</td></tr>");
+                        }
+                        out.print("</table>");
+                        out.print("<b>Totalsumma: " + SXUtil.getFormatNumber(totalsumma)  + "</b><br>");
+            
+                        if (antalKolli>0) {
+                            out.print("Antal kolli: " + antalKolli + "<br>");
+                            out.print("Total vikt: " + viktKg + "<br>");
+                        }
+                        out.print("<div><form action=\"/saljexas/FaktureraOffert\">");
+                        out.print("<input type=\"hidden\" name=\"offertnr\" value=\"" + offertnr +"\">");
+                        out.print("<input type=\"hidden\" name=\"antalkolli\" value=\"" + antalKolli +"\">");
+                        out.print("<input type=\"hidden\" name=\"viktkg\" value=\"" + viktKg +"\">");
+                        out.print("<input type=\"hidden\" name=\"totalsumma\" value=\"" + Math.round(totalsumma) +"\">");
+                        out.print("Ange fraktkostnad: <input type=\"text\" name=\"fraktkostnad\" value=\"7500\">");
+                        out.print("<input type=\"submit\" name=\"submitbtn\" value=\"Skapa faktura\">");
+                        
+                        out.print("</div></form>");
+                    }
+                }
+                    
 
+            } catch (SQLException e) {
+                request.setAttribute("errtext", "SQL-Fel: " + e.toString() + e.getMessage());
+            }
+            
             request.getRequestDispatcher("/WEB-INF/saljexas/overfor/index.jsp").include(request, response);				
  
             

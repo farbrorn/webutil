@@ -32,6 +32,10 @@
         <servlet-name>AdminServlet</servlet-name>
         <servlet-class>se.saljex.webutil.sxas.AdminServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>FaktureraOffert</servlet-name>
+        <servlet-class>se.saljex.webutil.sxas.FaktureraOffert</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>OverforBilligt</servlet-name>
         <url-pattern>/billigt/overfor</url-pattern>
@@ -63,6 +67,10 @@
     <servlet-mapping>
         <servlet-name>AdminServlet</servlet-name>
         <url-pattern>/saljexas/admin</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FaktureraOffert</servlet-name>
+        <url-pattern>/saljexas/FaktureraOffert</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
